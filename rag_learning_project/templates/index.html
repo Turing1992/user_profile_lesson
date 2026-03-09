@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG学习系统 - 智能文档问答</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .sidebar {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .chat-area {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-text {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(250, 112, 154, 0.4);
+        }
+        
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .file-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4facfe;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+        
+        .message.assistant {
+            background: white;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .message-content {
+            line-height: 1.6;
+        }
+        
+        .message-meta {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 8px;
+        }
+        
+        .sources {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .sources-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .source-item {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .question-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        .question-input:focus {
+            border-color: #4facfe;
+        }
+        
+        .send-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .error {
+            color: #e74c3c;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #27ae60;
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RAG学习系统</h1>
+            <div class="subtitle">智能文档问答 - 深入理解检索增强生成</div>
+        </div>
+        
+        <div class="main-content">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <!-- 文档上传区域 -->
+                <div class="section-title">
+                    📚 文档管理
+                </div>
+                
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-text">点击或拖拽文件到这里</div>
+                    <div style="font-size: 0.9rem; color: #999;">支持 PDF, Word, TXT 格式</div>
+                    <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.docx,.txt">
+                </div>
+                
+                <div class="file-list" id="fileList"></div>
+                
+                <button class="btn btn-danger" onclick="clearKnowledgeBase()" style="width: 100%; margin-top: 15px;">
+                    🗑️ 清空知识库
+                </button>
+                
+                <!-- 系统统计 -->
+                <div class="section-title" style="margin-top: 30px;">
+                    📊 系统统计
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalDocs">0</div>
+                        <div class="stat-label">文档数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalChunks">0</div>
+                        <div class="stat-label">文本块数</div>
+                    </div>
+                </div>
+                
+                <!-- RAG流程说明 -->
+                <div class="section-title" style="margin-top: 30px;">
+                    🔍 RAG工作流程
+                </div>
+                
+                <div style="font-size: 0.9rem; color: #666; line-height: 1.6;">
+                    <div style="margin-bottom: 10px;">
+                        <strong>1. 文档处理</strong><br>
+                        分块 → 清洗 → 标准化
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>2. 向量化</strong><br>
+                        文本 → 向量 → 索引存储
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>3. 检索</strong><br>
+                        问题向量化 → 相似度匹配
+                    </div>
+                    <div>
+                        <strong>4. 生成</strong><br>
+                        上下文增强 → LLM生成回答
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聊天区域 -->
+            <div class="chat-area">
+                <div class="section-title">
+                    💬 智能问答
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            👋 欢迎使用RAG学习系统！
+                            <br><br>
+                            请先上传一些文档，然后就可以开始提问了。系统会基于您上传的文档内容来回答问题。
+                            <br><br>
+                            <strong>使用提示：</strong>
+                            <ul style="margin-top: 10px; padding-left: 20px;">
+                                <li>上传PDF、Word或文本文档</li>
+                                <li>等待文档处理完成</li>
+                                <li>输入问题开始对话</li>
+                                <li>查看回答和参考来源</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div>🤖 正在思考中...</div>
+                </div>
+                
+                <div class="input-area">
+                    <input type="text" 
+                           class="question-input" 
+                           id="questionInput" 
+                           placeholder="请输入您的问题..."
+                           onkeypress="handleKeyPress(event)">
+                    <button class="send-btn" id="sendBtn" onclick="sendQuestion()">
+                        发送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let isProcessing = false;
+        
+        // 页面加载时获取系统状态
+        window.onload = function() {
+            updateSystemStats();
+        };
+        
+        // 文件上传处理
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        
+        // 拖拽上传
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('drop', handleDrop);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            uploadFiles(files);
+        }
+        
+        function handleDragOver(event) {
+            event.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+        
+        function handleDrop(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(event.dataTransfer.files);
+            uploadFiles(files);
+        }
+        
+        function handleDragLeave(event) {
+            uploadArea.classList.remove('dragover');
+        }
+        
+        async function uploadFiles(files) {
+            if (isProcessing) {
+                alert('正在处理文件，请稍候...');
+                return;
+            }
+            
+            isProcessing = true;
+            
+            for (const file of files) {
+                await uploadSingleFile(file);
+            }
+            
+            isProcessing = false;
+            updateSystemStats();
+        }
+        
+        async function uploadSingleFile(file) {
+            const fileItem = addFileToList(file.name, 'processing');
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateFileStatus(fileItem, 'success', `${result.chunks} 个文本块`);
+                    uploadedFiles.push({
+                        name: file.name,
+                        chunks: result.chunks
+                    });
+                } else {
+                    updateFileStatus(fileItem, 'error', result.error);
+                }
+            } catch (error) {
+                updateFileStatus(fileItem, 'error', '上传失败');
+            }
+        }
+        
+        function addFileToList(fileName, status) {
+            const fileList = document.getElementById('fileList');
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-name">${fileName}</div>
+                <div class="file-status status-${status}">处理中...</div>
+            `;
+            fileList.appendChild(fileItem);
+            return fileItem;
+        }
+        
+        function updateFileStatus(fileItem, status, message) {
+            const statusElement = fileItem.querySelector('.file-status');
+            statusElement.className = `file-status status-${status}`;
+            statusElement.textContent = message;
+        }
+        
+        async function updateSystemStats() {
+            try {
+                const response = await fetch('/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalDocs').textContent = stats.total_documents || 0;
+                document.getElementById('totalChunks').textContent = stats.total_chunks || 0;
+            } catch (error) {
+                console.error('获取统计信息失败:', error);
+            }
+        }
+        
+        async function clearKnowledgeBase() {
+            if (!confirm('确定要清空知识库吗？这将删除所有已上传的文档。')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/clear', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('fileList').innerHTML = '';
+                    uploadedFiles = [];
+                    updateSystemStats();
+                    addMessage('assistant', '知识库已清空。');
+                } else {
+                    alert('清空失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('清空失败: ' + error.message);
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendQuestion();
+            }
+        }
+        
+        async function sendQuestion() {
+            const questionInput = document.getElementById('questionInput');
+            const question = questionInput.value.trim();
+            
+            if (!question) {
+                alert('请输入问题');
+                return;
+            }
+            
+            if (uploadedFiles.length === 0) {
+                alert('请先上传文档');
+                return;
+            }
+            
+            // 显示用户问题
+            addMessage('user', question);
+            questionInput.value = '';
+            
+            // 显示加载状态
+            const sendBtn = document.getElementById('sendBtn');
+            const loading = document.getElementById('loading');
+            
+            sendBtn.disabled = true;
+            loading.classList.add('show');
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addMessage('assistant', result.answer, result.sources, result.timing);
+                } else {
+                    addMessage('assistant', '抱歉，处理您的问题时出现错误: ' + result.error);
+                }
+            } catch (error) {
+                addMessage('assistant', '网络错误，请稍后重试。');
+            } finally {
+                sendBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+        
+        function addMessage(sender, content, sources = null, timing = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            let messageHTML = `<div class="message-content">${content}</div>`;
+            
+            // 添加时间信息
+            if (timing) {
+                messageHTML += `
+                    <div class="message-meta">
+                        检索: ${timing.retrieval_time}s | 生成: ${timing.generation_time}s | 总计: ${timing.total_time}s
+                    </div>
+                `;
+            }
+            
+            // 添加参考来源
+            if (sources && sources.length > 0) {
+                messageHTML += `
+                    <div class="sources">
+                        <div class="sources-title">📖 参考来源:</div>
+                `;
+                sources.forEach((source, index) => {
+                    messageHTML += `
+                        <div class="source-item">
+                            ${index + 1}. ${source.source_file} (相似度: ${source.similarity_score.toFixed(3)})
+                        </div>
+                    `;
+                });
+                messageHTML += `</div>`;
+            }
+            
+            messageDiv.innerHTML = messageHTML;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>

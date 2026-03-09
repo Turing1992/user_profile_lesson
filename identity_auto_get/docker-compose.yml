@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  identity-auto-system:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./results:/app/results
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    networks:
+      - identity-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: user_profile
+      MYSQL_USER: buser
+      MYSQL_PASSWORD: p3jnmja3
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - identity-network
+
+volumes:
+  mysql_data:
+
+networks:
+  identity-network:
+    driver: bridge

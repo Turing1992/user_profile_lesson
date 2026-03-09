@@ -1,0 +1,24 @@
+[
+    {
+        "event_id": "fire_001",
+        "event_type": "突发事件",
+        "event_description": "某商场发生火灾",
+        "related_content": [
+            "@消防员小王 发布救援视频",
+            "@记者李明 报道事件",
+            "user_001 转发评论"
+        ],
+        "timestamp": "2025-03-06 10:00:00"
+    },
+    {
+        "event_id": "traffic_002",
+        "event_type": "交通事故",
+        "event_description": "高速公路发生追尾",
+        "related_content": [
+            "@交警张sir 发布通报",
+            "@记者李明 再次报道",
+            "user_002 发布现场照片"
+        ],
+        "timestamp": "2025-03-06 14:00:00"
+    }
+]

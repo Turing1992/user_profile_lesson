@@ -1,0 +1,6 @@
+# MCP Server 核心依赖
+# mcp 库提供了 Server、Tool、TextContent 等核心类
+mcp>=1.0.0
+
+# pydantic 用于数据校验（mcp 内部依赖）
+pydantic>=2.0.0

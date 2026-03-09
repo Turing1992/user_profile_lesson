@@ -1,0 +1,122 @@
+[
+    {
+        "account_id": "tech_blogger_001",
+        "name": "科技小王",
+        "identity": "科技博主",
+        "interests": ["AI", "编程", "科技", "创业"],
+        "personality": {
+            "type": "外向",
+            "activity": "高",
+            "sentiment": "积极"
+        },
+        "description": "985毕业，现在某大厂做产品经理，关注AI和Web3，喜欢分享科技见解"
+    },
+    {
+        "account_id": "doctor_li",
+        "name": "李医生",
+        "identity": "医生",
+        "interests": ["医疗", "健康", "养生", "科普"],
+        "personality": {
+            "type": "内向",
+            "activity": "中",
+            "sentiment": "中性"
+        },
+        "description": "三甲医院心内科主治医师，从医10年，致力于健康科普"
+    },
+    {
+        "account_id": "teacher_zhang",
+        "name": "张老师",
+        "identity": "教师",
+        "interests": ["教育", "学习", "成长", "心理学"],
+        "personality": {
+            "type": "外向",
+            "activity": "中",
+            "sentiment": "积极"
+        },
+        "description": "高中语文教师，热爱教育事业，关注青少年成长"
+    },
+    {
+        "account_id": "student_chen",
+        "name": "小陈同学",
+        "identity": "学生",
+        "interests": ["学习", "游戏", "动漫", "编程"],
+        "personality": {
+            "type": "内向",
+            "activity": "高",
+            "sentiment": "积极"
+        },
+        "description": "计算机专业大三学生，喜欢编程和打游戏"
+    },
+    {
+        "account_id": "fitness_coach",
+        "name": "健身教练Mike",
+        "identity": "健身教练",
+        "interests": ["健身", "运动", "营养", "健康"],
+        "personality": {
+            "type": "外向",
+            "activity": "高",
+            "sentiment": "积极"
+        },
+        "description": "专业健身教练，国家一级运动员，分享健身知识"
+    },
+    {
+        "account_id": "food_blogger",
+        "name": "美食家小美",
+        "identity": "美食博主",
+        "interests": ["美食", "旅游", "摄影", "生活"],
+        "personality": {
+            "type": "外向",
+            "activity": "高",
+            "sentiment": "积极"
+        },
+        "description": "美食探店达人，走遍全国寻找美味"
+    },
+    {
+        "account_id": "programmer_wang",
+        "name": "程序员老王",
+        "identity": "程序员",
+        "interests": ["编程", "开源", "技术", "效率"],
+        "personality": {
+            "type": "内向",
+            "activity": "中",
+            "sentiment": "中性"
+        },
+        "description": "10年开发经验，全栈工程师，开源爱好者"
+    },
+    {
+        "account_id": "designer_liu",
+        "name": "设计师小刘",
+        "identity": "设计师",
+        "interests": ["设计", "艺术", "美学", "创意"],
+        "personality": {
+            "type": "外向",
+            "activity": "中",
+            "sentiment": "积极"
+        },
+        "description": "UI/UX设计师，追求极致的用户体验"
+    },
+    {
+        "account_id": "entrepreneur_zhao",
+        "name": "创业者老赵",
+        "identity": "创业者",
+        "interests": ["创业", "商业", "投资", "管理"],
+        "personality": {
+            "type": "外向",
+            "activity": "高",
+            "sentiment": "积极"
+        },
+        "description": "连续创业者，关注互联网和新消费"
+    },
+    {
+        "account_id": "writer_sun",
+        "name": "作家小孙",
+        "identity": "作家",
+        "interests": ["写作", "阅读", "文学", "思考"],
+        "personality": {
+            "type": "内向",
+            "activity": "低",
+            "sentiment": "中性"
+        },
+        "description": "自由撰稿人，已出版两本小说"
+    }
+]

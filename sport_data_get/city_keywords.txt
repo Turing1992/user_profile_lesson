@@ -1,0 +1,27 @@
+河北省 OR 石家庄市 OR 唐山市 OR 秦皇岛市 OR 邯郸市 OR 邢台市 OR 保定市 OR 张家口市 OR 承德市 OR 沧州市 OR 廊坊市 OR 衡水市
+山西省 OR 太原市 OR 大同市 OR 阳泉市 OR 长治市 OR 晋城市 OR 朔州市 OR 晋中市 OR 运城市 OR 忻州市 OR 临汾市 OR 吕梁市
+内蒙古自治区 OR 呼和浩特市 OR 包头市 OR 乌海市 OR 赤峰市 OR 通辽市 OR 鄂尔多斯市 OR 呼伦贝尔市 OR 巴彦淖尔市 OR 乌兰察布市 OR 阿拉善盟 OR 锡林郭勒盟 OR 兴安盟
+辽宁省 OR 沈阳市 OR 大连市 OR 鞍山市 OR 抚顺市 OR 本溪市 OR 丹东市 OR 锦州市 OR 营口市 OR 阜新市 OR 辽阳市 OR 盘锦市 OR 铁岭市 OR 朝阳市 OR 葫芦岛市
+吉林省 OR 长春市 OR 吉林市 OR 四平市 OR 辽源市 OR 通化市 OR 白山市 OR 松原市 OR 白城市 OR 延边朝鲜族自治州
+黑龙江省 OR 哈尔滨市 OR 齐齐哈尔市 OR 鸡西市 OR 鹤岗市 OR 双鸭山市 OR 大庆市 OR 伊春市 OR 佳木斯市 OR 七台河市 OR 牡丹江市 OR 黑河市 OR 绥化市 OR 大兴安岭地区
+江苏省 OR 南京市 OR 无锡市 OR 徐州市 OR 常州市 OR 苏州市 OR 南通市 OR 连云港市 OR 淮安市 OR 盐城市 OR 扬州市 OR 镇江市 OR 泰州市 OR 宿迁市
+浙江省 OR 杭州市 OR 宁波市 OR 温州市 OR 嘉兴市 OR 湖州市 OR 绍兴市 OR 金华市 OR 衢州市 OR 舟山市 OR 台州市 OR 丽水市
+安徽省 OR 合肥市 OR 芜湖市 OR 蚌埠市 OR 淮南市 OR 马鞍山市 OR 淮北市 OR 铜陵市 OR 安庆市 OR 黄山市 OR 阜阳市 OR 宿州市 OR 滁州市 OR 六安市 OR 宣城市 OR 池州市 OR 亳州市
+福建省 OR 福州市 OR 厦门市 OR 莆田市 OR 三明市 OR 泉州市 OR 漳州市 OR 南平市 OR 龙岩市 OR 宁德市
+江西省 OR 南昌市 OR 景德镇市 OR 萍乡市 OR 九江市 OR 新余市 OR 鹰潭市 OR 赣州市 OR 吉安市 OR 宜春市 OR 抚州市 OR 上饶市
+山东省 OR 济南市 OR 青岛市 OR 淄博市 OR 枣庄市 OR 东营市 OR 烟台市 OR 潍坊市 OR 济宁市 OR 泰安市 OR 威海市 OR 日照市 OR 临沂市 OR 德州市 OR 聊城市 OR 滨州市 OR 菏泽市
+河南省 OR 郑州市 OR 开封市 OR 洛阳市 OR 平顶山市 OR 安阳市 OR 鹤壁市 OR 新乡市 OR 焦作市 OR 濮阳市 OR 许昌市 OR 漯河市 OR 三门峡市 OR 南阳市 OR 商丘市 OR 信阳市 OR 周口市 OR 驻马店市
+湖北省 OR 武汉市 OR 黄石市 OR 十堰市 OR 宜昌市 OR 襄阳市 OR 鄂州市 OR 荆门市 OR 孝感市 OR 荆州市 OR 黄冈市 OR 咸宁市 OR 随州市 OR 恩施土家族苗族自治州
+湖南省 OR 长沙市 OR 株洲市 OR 湘潭市 OR 衡阳市 OR 邵阳市 OR 岳阳市 OR 常德市 OR 张家界市 OR 益阳市 OR 郴州市 OR 永州市 OR 怀化市 OR 娄底市 OR 湘西土家族苗族自治州
+广东省 OR 广州市 OR 韶关市 OR 深圳市 OR 珠海市 OR 汕头市 OR 佛山市 OR 江门市 OR 湛江市 OR 茂名市 OR 肇庆市 OR 惠州市 OR 梅州市 OR 汕尾市 OR 河源市 OR 阳江市 OR 清远市 OR 东莞市 OR 中山市 OR 潮州市 OR 揭阳市 OR 云浮市
+广西壮族自治区 OR 南宁市 OR 柳州市 OR 桂林市 OR 梧州市 OR 北海市 OR 防城港市 OR 钦州市 OR 贵港市 OR 玉林市 OR 百色市 OR 贺州市 OR 河池市 OR 来宾市 OR 崇左市
+海南省 OR 海口市 OR 三亚市 OR 三沙市 OR 儋州市
+四川省 OR 成都市 OR 自贡市 OR 攀枝花市 OR 泸州市 OR 德阳市 OR 绵阳市 OR 广元市 OR 遂宁市 OR 内江市 OR 乐山市 OR 南充市 OR 眉山市 OR 宜宾市 OR 广安市 OR 达州市 OR 雅安市 OR 巴中市 OR 资阳市 OR 阿坝藏族羌族自治州 OR 甘孜藏族自治州 OR 凉山彝族自治州
+贵州省 OR 贵阳市 OR 六盘水市 OR 遵义市 OR 安顺市 OR 毕节市 OR 铜仁市 OR 黔西南布依族苗族自治州 OR 黔东南苗族侗族自治州 OR 黔南布依族苗族自治州
+云南省 OR 昆明市 OR 曲靖市 OR 玉溪市 OR 保山市 OR 昭通市 OR 丽江市 OR 普洱市 OR 临沧市 OR 楚雄彝族自治州 OR 红河哈尼族彝族自治州 OR 文山壮族苗族自治州 OR 西双版纳傣族自治州 OR 大理白族自治州 OR 德宏傣族景颇族自治州 OR 怒江傈僳族自治州 OR 迪庆藏族自治州
+西藏自治区 OR 拉萨市 OR 日喀则市 OR 昌都市 OR 林芝市 OR 山南市 OR 那曲市 OR 阿里地区
+陕西省 OR 西安市 OR 铜川市 OR 宝鸡市 OR 咸阳市 OR 渭南市 OR 延安市 OR 汉中市 OR 榆林市 OR 安康市 OR 商洛市
+甘肃省 OR 兰州市 OR 嘉峪关市 OR 金昌市 OR 白银市 OR 天水市 OR 武威市 OR 张掖市 OR 平凉市 OR 酒泉市 OR 庆阳市 OR 定西市 OR 陇南市 OR 临夏回族自治州 OR 甘南藏族自治州
+青海省 OR 西宁市 OR 海东市 OR 海北藏族自治州 OR 黄南藏族自治州 OR 海南藏族自治州 OR 果洛藏族自治州 OR 玉树藏族自治州 OR 海西蒙古族藏族自治州
+宁夏回族自治区 OR 银川市 OR 石嘴山市 OR 吴忠市 OR 固原市 OR 中卫市
+新疆维吾尔自治区 OR 乌鲁木齐市 OR 克拉玛依市 OR 吐鲁番市 OR 哈密市 OR 昌吉回族自治州 OR 博尔塔拉蒙古自治州 OR 巴音郭楞蒙古自治州 OR 阿克苏地区 OR 克孜勒苏柯尔克孜自治州 OR 喀什地区 OR 和田地区 OR 伊犁哈萨克自治州 OR 塔城地区 OR 阿勒泰地区

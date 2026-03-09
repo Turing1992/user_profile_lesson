@@ -1,0 +1,37 @@
+[
+  {
+    "account_id": "dy_001",
+    "name": "科技小王",
+    "identity": "互联网从业者",
+    "description": "985毕业，现在某大厂做产品经理，关注AI和Web3，坐标北京",
+    "verified_reason": "互联网公司产品经理"
+  },
+  {
+    "account_id": "wb_002",
+    "name": "李医生",
+    "identity": "医生",
+    "description": "三甲医院心内科主治医师，从医10年，希望用专业知识帮助更多人",
+    "verified_reason": "某市人民医院心内科医生"
+  },
+  {
+    "account_id": "xhs_003",
+    "name": "90后宝妈日记",
+    "identity": "家长",
+    "description": "90后全职妈妈，分享育儿经验和生活日常，宝宝3岁啦",
+    "verified_reason": "个人账号"
+  },
+  {
+    "account_id": "dy_004",
+    "name": "张老师的数学课堂",
+    "identity": "教师",
+    "description": "高中数学老师，教龄15年，希望让每个孩子都爱上数学",
+    "verified_reason": "某重点中学数学教师"
+  },
+  {
+    "account_id": "ks_005",
+    "name": "农村小伙创业记",
+    "identity": "农民",
+    "description": "95后返乡创业，搞养殖和电商，带动乡亲们一起致富",
+    "verified_reason": "个人账号"
+  }
+]

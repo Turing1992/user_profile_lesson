@@ -1,0 +1,84 @@
+{
+  "event_info": {
+    "event_id": "traffic_002",
+    "event_type": "交通事故",
+    "event_description": "高速公路发生追尾",
+    "timestamp": "2025-03-06 14:00:00"
+  },
+  "extracted_entities": {
+    "accounts": [
+      "002",
+      "交警张sir",
+      "记者李明"
+    ],
+    "keywords": [
+      "报道"
+    ],
+    "topics": [],
+    "locations": []
+  },
+  "account_analysis": {
+    "total_accounts": 3,
+    "existing_accounts": 0,
+    "new_accounts": 3
+  },
+  "profiles": [
+    {
+      "account_id": "002",
+      "name": "002",
+      "identity": "未知身份",
+      "event_analysis": {
+        "event_role": "信息发布者",
+        "stance": "中立",
+        "influence_level": "中等",
+        "risk_level": "低",
+        "analysis": "该账号在事件 traffic_002 中参与讨论"
+      },
+      "event_context": {
+        "event_id": "traffic_002",
+        "event_type": "交通事故"
+      }
+    },
+    {
+      "account_id": "交警张sir",
+      "name": "交警张sir",
+      "identity": "交警",
+      "event_analysis": {
+        "event_role": "信息发布者",
+        "stance": "中立",
+        "influence_level": "中等",
+        "risk_level": "低",
+        "analysis": "该账号在事件 traffic_002 中参与讨论"
+      },
+      "event_context": {
+        "event_id": "traffic_002",
+        "event_type": "交通事故"
+      }
+    },
+    {
+      "account_id": "记者李明",
+      "name": "记者李明",
+      "identity": "记者",
+      "event_analysis": {
+        "event_role": "信息发布者",
+        "stance": "中立",
+        "influence_level": "中等",
+        "risk_level": "低",
+        "analysis": "该账号在事件 traffic_002 中参与讨论"
+      },
+      "event_context": {
+        "event_id": "traffic_002",
+        "event_type": "交通事故"
+      }
+    }
+  ],
+  "summary": {
+    "role_distribution": {
+      "信息发布者": 3
+    },
+    "risk_distribution": {
+      "低": 3
+    },
+    "high_risk_accounts": []
+  }
+}

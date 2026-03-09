@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.db
+*.log
+*.bin
+*.xlsx
+.DS_Store
+.idea/
+.vscode/
+.kiro/
+node_modules/
+*.cer
+embeddings_output.json
+identitys_o.txt
+description.txt

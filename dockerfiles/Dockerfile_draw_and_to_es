@@ -1,0 +1,45 @@
+# 使用 Alpine Linux 作为基础镜像
+FROM  zhxgharbor.istarshine.com/dflow/centos7_rmqclient:3.6
+
+# 安装 tzdata 包以支持时区配置
+RUN yum install -y tzdata && \
+    # 设置时区为 Asia/Shanghai
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    # 验证时区配置
+    echo "当前时区:" && date +%Z
+
+RUN pip3.6 install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+RUN pip3.6 install openpyxl
+RUN pip3.6 install xlrd
+# 安装Python依赖
+RUN pip3.6 install --no-cache-dir \
+    loguru \
+    redis \
+    ujson \
+    actrie  \
+    pytz \
+    requests \
+    opensearch-py\
+    dirtyjson \
+    pandas\
+    openai\
+    -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+
+# 设置工作目录
+
+
+
+COPY utils /app/utils
+COPY config  /app/config
+COPY draw_and_to_es.py /app/
+COPY final_stanterd.xlsx /app/
+COPY ca.cer /app/
+
+# 创建日志目录
+RUN mkdir -p /app/logs
+
+WORKDIR /app
+CMD ["python3.6","draw_and_to_es.py"]

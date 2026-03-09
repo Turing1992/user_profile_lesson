@@ -1,0 +1,129 @@
+{
+  "id": "7547741323475141690",
+  "url": "https://www.iesdouyin.com/share/video/7582033740986895626",
+  "content": "生活需要仪式感跑网约车也可以#司机黑手套#网约车#仪式感#正能量#积极乐观",
+  "sitename": "抖音",
+  "verified_reason": "",
+  "description": "四川好好耍，好好耍四川。成都，是一座温柔、热情又包容的城市，四川的吃喝玩乐都巴适得很，欢迎来四川好好耍，好好耍四川。成都网约车司机黑手套六世界，跑车故事很精彩，积极乐观有点社会责任感，深深的爱着成都这座城市，特别喜欢网约车司机这个职业，感觉他是受命于天，战袍加身，天生司机，特别热情的服务，欢迎您来四川耍！一车一世界，一辆车就是一个社会的缩影，看尽世间形色。生活要有仪式感，跑网约车也可以。",
+  "gender": "",
+  "ip_region": "四川省",
+  "followers_count": "2",
+  "friends_count": "1",
+  "input_id": "8",
+  "user_name": "司机黑手套爱四川",
+  "info_response_id": "163f472af00d38f1d816b1eb41736750",
+  "identity": [
+    "网约车司机"
+  ],
+  "identity_standerd": [
+    "其他"
+  ],
+  "name": [],
+  "age": [],
+  "three_new_identity": "平台配送与运输从业者",
+  "community": "网约车司机",
+  "log": "发帖人明确提到'跑网约车'，这直接表明其从事网约车驾驶工作，属于平台配送与运输从业者类别。"
+}
+{
+  "id": "108603776828",
+  "url": "https://www.iesdouyin.com/share/video/7582040402028530994",
+  "content": "20v27时间好快，#外卖小哥 #外卖员 #骑手 还有二个月有过年了，",
+  "sitename": "抖音",
+  "verified_reason": "",
+  "description": "好好努力工作，离目标越来越近了，\n90后大叔在东莞送外卖。",
+  "gender": "",
+  "ip_region": "广东省",
+  "followers_count": "360",
+  "friends_count": "103",
+  "input_id": "15",
+  "user_name": "记广西账上",
+  "info_response_id": "163f472af00d38f1d816b1eb41736750",
+  "identity": [
+    "外卖员"
+  ],
+  "identity_standerd": [
+    "其他"
+  ],
+  "name": [],
+  "age": [
+    "90后"
+  ],
+  "three_new_identity": "",
+  "community": "",
+  "log": "发帖内容中未出现发帖人明确描述自己从事外卖员或其他职业的语句，如'我送外卖'或'我开网约车'等。内容仅提及'外卖小哥'、'外卖员'、'骑手'等标签，但未表明发帖人自身身份，可能为一般讨论或广告贴，因此不做处理。"
+}
+{
+  "id": "71038911321",
+  "url": "https://www.iesdouyin.com/share/video/7582023794190765371",
+  "content": "#车门一关一路平安 #感谢老铁们支持 #为梦想而努力 #开货车的纯爷们 #开车注意安全",
+  "sitename": "抖音",
+  "verified_reason": "",
+  "description": "浙江",
+  "gender": "",
+  "ip_region": "安徽省",
+  "followers_count": "1113",
+  "friends_count": "864",
+  "input_id": "5",
+  "user_name": "过网云烟",
+  "info_response_id": "163f472af00d38f1d816b1eb41736750",
+  "identity": [
+    "货车司机"
+  ],
+  "identity_standerd": [
+    "其他"
+  ],
+  "name": [],
+  "age": [],
+  "three_new_identity": "",
+  "community": "",
+  "log": "发帖内容为一般性励志和安全提示，未包含发帖人明确描述自己职业的语句，如'我开货车'或类似自我指称，因此无法判断身份。"
+}
+{
+  "id": "3173609098449514",
+  "url": "https://www.iesdouyin.com/share/video/7582042475281501477",
+  "content": "车子都开旧了，车证终于是办下来了#常德 #网约车#车证办理 #一年",
+  "sitename": "抖音",
+  "verified_reason": "",
+  "description": "知足常乐",
+  "gender": "",
+  "ip_region": "湖南省",
+  "followers_count": "13",
+  "friends_count": "24",
+  "input_id": "17",
+  "user_name": "didi",
+  "info_response_id": "163f472af00d38f1d816b1eb41736750",
+  "identity": [
+    "网约车司机"
+  ],
+  "identity_standerd": [
+    "其他"
+  ],
+  "name": [],
+  "age": [],
+  "three_new_identity": "平台配送与运输从业者",
+  "community": "网约车司机",
+  "log": "发帖人提到'车证终于是办下来了'并标注'#网约车'，表明他正在办理网约车相关证件，暗示自己从事网约车驾驶工作。"
+}
+{
+  "id": "92675908353",
+  "url": "https://www.iesdouyin.com/share/video/7582049867692100901",
+  "content": "#女司机 #网约车   我才停一下下，前面突然满了……全空车呀🤣",
+  "sitename": "抖音",
+  "verified_reason": "",
+  "description": "记录姐弟生活日常\n热爱生活，热爱抖音\n💐💐🌷🌷🌹🌹🌸🌸",
+  "gender": "",
+  "ip_region": "湖南省",
+  "followers_count": "1622",
+  "friends_count": "2325",
+  "input_id": "18",
+  "user_name": "丫丫and果果妈",
+  "info_response_id": "0735b7189978a689b00f07bee2004a68",
+  "identity": [],
+  "identity_standerd": [
+    "其他"
+  ],
+  "name": [],
+  "age": [],
+  "three_new_identity": "平台配送与运输从业者",
+  "community": "网约车司机",
+  "log": "发帖人使用标签'#网约车'，并描述'我才停一下下，前面突然满了……全空车呀'，暗示自己是网约车司机在等待乘客或处理停车情况，符合'我开网约车'的自我描述。"}
