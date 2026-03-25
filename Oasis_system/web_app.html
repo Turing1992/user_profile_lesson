@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OASIS 测试平台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 1px solid #334155; padding: 16px 32px; display: flex; align-items: center; gap: 16px; }
+.header h1 { font-size: 22px; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.header .subtitle { color: #94a3b8; font-size: 13px; }
+
+/* Tabs */
+.tabs { display: flex; background: #1e293b; border-bottom: 1px solid #334155; padding: 0 32px; }
+.tab { padding: 12px 24px; cursor: pointer; color: #94a3b8; font-size: 14px; border-bottom: 2px solid transparent; transition: all .2s; }
+.tab:hover { color: #e2e8f0; }
+.tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+
+/* Main */
+.main { max-width: 1200px; margin: 0 auto; padding: 24px 32px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+.form-group textarea, .form-group input, .form-group select {
+  width: 100%; padding: 10px 12px; background: #1e293b; border: 1px solid #334155;
+  border-radius: 8px; color: #e2e8f0; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace;
+  outline: none; transition: border-color .2s;
+}
+.form-group textarea:focus, .form-group input:focus, .form-group select:focus { border-color: #38bdf8; }
+.form-group textarea { min-height: 200px; resize: vertical; }
+
+/* Buttons */
+.btn-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.btn {
+  padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;
+  font-size: 14px; font-weight: 500; transition: all .2s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-primary:disabled { background: #475569; cursor: not-allowed; }
+.btn-secondary { background: #334155; color: #e2e8f0; }
+.btn-secondary:hover { background: #475569; }
+.btn-success { background: #10b981; color: #fff; }
+.btn-success:hover { background: #059669; }
+
+/* Result */
+.result-box {
+  background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+  padding: 16px; margin-top: 16px; max-height: 600px; overflow: auto;
+}
+.result-box pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; line-height: 1.6; color: #cbd5e1; font-family: 'SF Mono', 'Fira Code', monospace; }
+
+/* Status */
+.status { padding: 8px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; display: none; }
+.status.info { display: block; background: #1e3a5f; color: #7dd3fc; border: 1px solid #2563eb; }
+.status.error { display: block; background: #3b1111; color: #fca5a5; border: 1px solid #dc2626; }
+.status.success { display: block; background: #0d3320; color: #86efac; border: 1px solid #16a34a; }
+
+/* Loading spinner */
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #475569; border-top-color: #38bdf8; border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Inline params */
+.inline-params { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.inline-params .form-group { flex: 1; min-width: 120px; margin-bottom: 0; }
+
+/* Cards */
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.card h3 { font-size: 15px; color: #38bdf8; margin-bottom: 8px; }
+.card p { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏝️ OASIS 测试平台</h1>
+  <span class="subtitle">画像推演 · 社交模拟 · 事件分析</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('profile')">📋 画像推演</div>
+  <div class="tab" onclick="switchTab('simulation')">🌐 社交模拟</div>
+  <div class="tab" onclick="switchTab('event')">🔍 事件分析</div>
+  <div class="tab" onclick="switchTab('pipeline')">🔗 全流水线</div>
+</div>
+
+<div class="main">
+
+<!-- ========== 画像推演 ========== -->
+<div id="panel-profile" class="panel active">
+  <div class="card">
+    <h3>账号画像推演</h3>
+    <p>输入账号基础信息（JSON），系统通过 LLM 推演出完整的用户画像，包含基础信息、身份分析、行为预测、社交推断、内容偏好、风险评估 6 个维度。</p>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadExample('profile')">📥 加载示例数据</button>
+    <button class="btn btn-primary" id="btn-profile" onclick="runProfile()">🚀 开始推演</button>
+    <button class="btn btn-success" id="btn-profile-batch" onclick="runProfileBatch()">📦 批量推演</button>
+  </div>
+
+  <div class="form-group">
+    <label>输入数据（单个对象或数组）</label>
+    <textarea id="profile-input" placeholder='{
+  "account_id": "test_001",
+  "name": "科技小王",
+  "identity": "互联网从业者",
+  "description": "985毕业，某大厂产品经理",
+  "verified_reason": "互联网公司产品经理"
+}'></textarea>
+  </div>
+
+  <div id="profile-status" class="status"></div>
+  <div id="profile-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+<!-- ========== 社交模拟 ========== -->
+<div id="panel-simulation" class="panel">
+  <div class="card">
+    <h3>社交模拟</h3>
+    <p>模拟多个 AI Agent 在虚拟社交平台上的互动行为。可以自动生成 Agent，也可以提供自定义画像。模拟为异步执行，启动后可轮询状态。</p>
+  </div>
+
+  <div class="inline-params" style="margin-bottom: 16px;">
+    <div class="form-group">
+      <label>平台</label>
+      <select id="sim-platform">
+        <option value="weibo">微博</option>
+        <option value="douyin">抖音</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Agent 数量</label>
+      <input type="number" id="sim-agents" value="10" min="2" max="200">
+    </div>
+    <div class="form-group">
+      <label>模拟步数</label>
+      <input type="number" id="sim-steps" value="5" min="1" max="100">
+    </div>
+    <div class="form-group">
+      <label>使用 LLM</label>
+      <select id="sim-llm">
+        <option value="false">否（规则引擎，快）</option>
+        <option value="true">是（LLM 决策，慢）</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadExample('simulation')">📥 加载自定义画像</button>
+    <button class="btn btn-primary" id="btn-sim" onclick="runSimulation()">🚀 启动模拟</button>
+  </div>
+
+  <div class="form-group">
+    <label>自定义 Agent 画像（可选，留空则自动生成）</label>
+    <textarea id="sim-input" placeholder="留空则自动生成 Agent 画像，或粘贴 JSON 数组..." style="min-height:120px;"></textarea>
+  </div>
+
+  <div id="sim-status" class="status"></div>
+  <div id="sim-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+<!-- ========== 事件分析 ========== -->
+<div id="panel-event" class="panel">
+  <div class="card">
+    <h3>事件分析</h3>
+    <p>输入事件描述和相关内容，系统自动抽取涉事账号、匹配画像库、推演深度画像，生成完整的事件分析报告。支持单个事件或批量事件。</p>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadExample('event')">📥 加载示例事件</button>
+    <button class="btn btn-primary" id="btn-event" onclick="runEvent()">🔍 分析事件</button>
+    <button class="btn btn-success" id="btn-event-batch" onclick="runEventBatch()">📦 批量分析</button>
+  </div>
+
+  <div class="form-group">
+    <label>事件数据（单个对象或数组）</label>
+    <textarea id="event-input" placeholder='{
+  "event_id": "fire_001",
+  "event_type": "突发事件",
+  "event_description": "某商场发生火灾",
+  "related_content": [
+    "@消防员小王 发布救援视频",
+    "@记者李明 报道事件",
+    "user_123 转发评论"
+  ]
+}'></textarea>
+  </div>
+
+  <div id="event-status" class="status"></div>
+  <div id="event-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+<!-- ========== 全流水线 ========== -->
+<div id="panel-pipeline" class="panel">
+  <div class="card">
+    <h3>🔗 事件全流水线</h3>
+    <p>完整流程：事件输入 → 实体抽取 → ES画像匹配 → 未匹配账号LLM推断身份 → 全部账号平台推演 → 三分支社交模拟 → 输出结果。</p>
+    <p style="margin-top:8px; color:#7dd3fc; font-size:12px;">
+      分支A: 全部账号模拟 &nbsp;|&nbsp; 分支B: 有身份(identity)的账号模拟 &nbsp;|&nbsp; 分支C: 有三新身份(community)的账号模拟
+    </p>
+  </div>
+
+  <!-- 输入模式切换 -->
+  <div style="margin-bottom: 16px; display: flex; gap: 8px;">
+    <button class="btn btn-primary" id="mode-keyword" onclick="switchPipeMode('keyword')" style="opacity:1;">🔑 关键词搜索</button>
+    <button class="btn btn-secondary" id="mode-json" onclick="switchPipeMode('json')" style="opacity:0.6;">📝 JSON事件</button>
+  </div>
+
+  <div class="inline-params" style="margin-bottom: 16px;">
+    <div class="form-group">
+      <label>推演平台</label>
+      <select id="pipe-platform">
+        <option value="weibo">微博</option>
+        <option value="douyin">抖音</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>模拟步数</label>
+      <input type="number" id="pipe-steps" value="5" min="1" max="50">
+    </div>
+    <div class="form-group">
+      <label>模拟用LLM</label>
+      <select id="pipe-llm">
+        <option value="false">否（规则引擎）</option>
+        <option value="true">是（LLM决策）</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 关键词输入模式 -->
+  <div id="pipe-keyword-mode">
+    <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+      <button class="btn btn-success" id="kw-mode-simple" onclick="switchKwInputMode('simple')" style="padding:6px 14px; font-size:12px;">🔤 简单关键词</button>
+      <button class="btn btn-secondary" id="kw-mode-expr" onclick="switchKwInputMode('expr')" style="padding:6px 14px; font-size:12px; opacity:0.6;">🧮 布尔表达式</button>
+    </div>
+    <div id="kw-simple-input" class="form-group">
+      <label>事件关键词 / 标题（多个关键词用中文逗号分隔）</label>
+      <input type="text" id="pipe-keyword" placeholder="例如：某商场火灾 或 外卖员猝死，劳动权益">
+    </div>
+    <div id="kw-expr-input" class="form-group" style="display:none;">
+      <label>布尔表达式（支持 AND / OR / 括号嵌套）</label>
+      <textarea id="pipe-expression" style="min-height:100px;" placeholder="(徐延彬 AND ((违纪违法 OR 交代问题) AND (江西 OR 鄱阳湖))) OR (江西省纪委监委 AND (违纪违法 OR 监察调查))"></textarea>
+    </div>
+    <div class="inline-params" style="margin-bottom: 16px;">
+      <div class="form-group">
+        <label>开始时间（可选）</label>
+        <input type="datetime-local" id="pipe-start-time" step="1">
+      </div>
+      <div class="form-group">
+        <label>结束时间（可选）</label>
+        <input type="datetime-local" id="pipe-end-time" step="1">
+      </div>
+      <div class="form-group">
+        <label>下载条数</label>
+        <input type="number" id="pipe-download-size" value="50" min="10" max="200">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-pipeline-kw" onclick="runPipelineKeyword()">🚀 关键词启动流水线</button>
+    </div>
+  </div>
+
+  <!-- JSON输入模式 -->
+  <div id="pipe-json-mode" style="display:none;">
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="loadPipelineExample()">📥 加载示例事件</button>
+      <button class="btn btn-primary" id="btn-pipeline" onclick="runPipeline()">🚀 启动流水线</button>
+    </div>
+    <div class="form-group">
+      <label>事件数据（JSON对象）</label>
+      <textarea id="pipe-input" placeholder='{
+  "event_id": "fire_001",
+  "event_type": "突发事件",
+  "event_description": "某商场发生火灾，消防部门紧急救援",
+  "related_content": [
+    "@消防员小王 发布了现场救援视频",
+    "@新闻记者李明 第一时间报道了事件经过",
+    "@商场管理员 发布了疏散通知",
+    "user_12345 转发并评论",
+    "#火灾救援 话题下有大量讨论"
+  ]
+}'></textarea>
+    </div>
+  </div>
+
+  <div id="pipe-status" class="status"></div>
+  <div id="pipe-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+</div>
+
+<script>
+
+// ========== Tab 切换 ==========
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ========== 工具函数 ==========
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.innerHTML = msg;
+}
+
+function showResult(id, data) {
+  const box = document.getElementById(id);
+  box.style.display = 'block';
+  box.querySelector('pre').textContent = JSON.stringify(data, null, 2);
+}
+
+function hideResult(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function parseInput(id) {
+  const raw = document.getElementById(id).value.trim();
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+
+async function apiCall(url, data, method = 'POST') {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (data !== undefined && method !== 'GET') opts.body = JSON.stringify(data);
+  const resp = await fetch(url, opts);
+  return await resp.json();
+}
+
+// ========== 加载示例 ==========
+async function loadExample(type) {
+  try {
+    const data = await apiCall('/api/examples/' + type, undefined, 'GET');
+    const inputId = type === 'simulation' ? 'sim-input' :
+                    type === 'event' ? 'event-input' : 'profile-input';
+    document.getElementById(inputId).value = JSON.stringify(data, null, 2);
+  } catch (e) {
+    alert('加载示例失败: ' + e.message);
+  }
+}
+
+// ========== 模块1: 画像推演 ==========
+async function runProfile() {
+  const btn = document.getElementById('btn-profile');
+  try {
+    const data = parseInput('profile-input');
+    if (!data) return setStatus('profile-status', 'error', '请输入数据');
+
+    // 如果是数组，取第一个
+    const single = Array.isArray(data) ? data[0] : data;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 推演中...';
+    setStatus('profile-status', 'info', '⏳ 正在调用 LLM 进行 6 维度推演，请耐心等待...');
+    hideResult('profile-result');
+
+    const result = await apiCall('/api/profile/analyze', single);
+    setStatus('profile-status', 'success', '✅ 推演完成');
+    showResult('profile-result', result);
+  } catch (e) {
+    setStatus('profile-status', 'error', '❌ 错误: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🚀 开始推演';
+  }
+}
+
+async function runProfileBatch() {
+  const btn = document.getElementById('btn-profile-batch');
+  try {
+    let data = parseInput('profile-input');
+    if (!data) return setStatus('profile-status', 'error', '请输入数据');
+    if (!Array.isArray(data)) data = [data];
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 批量推演中...';
+    setStatus('profile-status', 'info', '⏳ 正在批量推演 ' + data.length + ' 个账号...');
+    hideResult('profile-result');
+
+    const result = await apiCall('/api/profile/batch', data);
+    setStatus('profile-status', 'success', '✅ 批量推演完成，共 ' + data.length + ' 个账号');
+    showResult('profile-result', result);
+  } catch (e) {
+    setStatus('profile-status', 'error', '❌ 错误: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '📦 批量推演';
+  }
+}
+
+// ========== 模块2: 社交模拟 ==========
+let simPollTimer = null;
+
+async function runSimulation() {
+  const btn = document.getElementById('btn-sim');
+  try {
+    const platform = document.getElementById('sim-platform').value;
+    const agentCount = parseInt(document.getElementById('sim-agents').value) || 10;
+    const steps = parseInt(document.getElementById('sim-steps').value) || 5;
+    const useLlm = document.getElementById('sim-llm').value === 'true';
+
+    let profiles = null;
+    const raw = document.getElementById('sim-input').value.trim();
+    if (raw) {
+      profiles = JSON.parse(raw);
+      if (!Array.isArray(profiles)) profiles = [profiles];
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 启动中...';
+    setStatus('sim-status', 'info', '⏳ 正在启动模拟...');
+    hideResult('sim-result');
+
+    const body = { platform, agent_count: agentCount, steps, use_llm: useLlm };
+    if (profiles) body.profiles = profiles;
+
+    const resp = await apiCall('/api/simulation/start', body);
+    if (resp.status !== 'started') {
+      setStatus('sim-status', 'error', '❌ 启动失败: ' + (resp.message || '未知错误'));
+      return;
+    }
+
+    const taskId = resp.task_id;
+    setStatus('sim-status', 'info', '⏳ 模拟运行中 (任务ID: ' + taskId + ')，请等待...');
+
+    // 轮询状态
+    if (simPollTimer) clearInterval(simPollTimer);
+    simPollTimer = setInterval(async () => {
+      try {
+        const st = await apiCall('/api/simulation/status/' + taskId, undefined, 'GET');
+        if (st.status === 'completed') {
+          clearInterval(simPollTimer);
+          simPollTimer = null;
+          setStatus('sim-status', 'success', '✅ 模拟完成');
+          showResult('sim-result', st.result);
+          btn.disabled = false;
+          btn.innerHTML = '🚀 启动模拟';
+        } else if (st.status === 'failed') {
+          clearInterval(simPollTimer);
+          simPollTimer = null;
+          setStatus('sim-status', 'error', '❌ 模拟失败: ' + st.error);
+          btn.disabled = false;
+          btn.innerHTML = '🚀 启动模拟';
+        }
+      } catch (e) { /* ignore poll errors */ }
+    }, 2000);
+
+  } catch (e) {
+    setStatus('sim-status', 'error', '❌ 错误: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '🚀 启动模拟';
+  }
+}
+
+// ========== 模块3: 事件分析 ==========
+async function runEvent() {
+  const btn = document.getElementById('btn-event');
+  try {
+    const data = parseInput('event-input');
+    if (!data) return setStatus('event-status', 'error', '请输入事件数据');
+
+    const single = Array.isArray(data) ? data[0] : data;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 分析中...';
+    setStatus('event-status', 'info', '⏳ 正在分析事件，抽取实体并推演画像...');
+    hideResult('event-result');
+
+    const result = await apiCall('/api/event/analyze', single);
+    setStatus('event-status', 'success', '✅ 事件分析完成');
+    showResult('event-result', result);
+  } catch (e) {
+    setStatus('event-status', 'error', '❌ 错误: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔍 分析事件';
+  }
+}
+
+async function runEventBatch() {
+  const btn = document.getElementById('btn-event-batch');
+  try {
+    let data = parseInput('event-input');
+    if (!data) return setStatus('event-status', 'error', '请输入事件数据');
+    if (!Array.isArray(data)) data = [data];
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 批量分析中...';
+    setStatus('event-status', 'info', '⏳ 正在批量分析 ' + data.length + ' 个事件...');
+    hideResult('event-result');
+
+    const result = await apiCall('/api/event/batch', data);
+    setStatus('event-status', 'success', '✅ 批量分析完成，共 ' + data.length + ' 个事件');
+    showResult('event-result', result);
+  } catch (e) {
+    setStatus('event-status', 'error', '❌ 错误: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '📦 批量分析';
+  }
+}
+
+// ========== 模块4: 全流水线 ==========
+
+// 输入模式切换
+function switchPipeMode(mode) {
+  const kwMode = document.getElementById('pipe-keyword-mode');
+  const jsonMode = document.getElementById('pipe-json-mode');
+  const btnKw = document.getElementById('mode-keyword');
+  const btnJson = document.getElementById('mode-json');
+  if (mode === 'keyword') {
+    kwMode.style.display = 'block';
+    jsonMode.style.display = 'none';
+    btnKw.className = 'btn btn-primary'; btnKw.style.opacity = '1';
+    btnJson.className = 'btn btn-secondary'; btnJson.style.opacity = '0.6';
+  } else {
+    kwMode.style.display = 'none';
+    jsonMode.style.display = 'block';
+    btnJson.className = 'btn btn-primary'; btnJson.style.opacity = '1';
+    btnKw.className = 'btn btn-secondary'; btnKw.style.opacity = '0.6';
+  }
+}
+
+// 关键词子模式切换：简单 / 表达式
+let kwInputMode = 'simple';
+function switchKwInputMode(mode) {
+  kwInputMode = mode;
+  const btnSimple = document.getElementById('kw-mode-simple');
+  const btnExpr = document.getElementById('kw-mode-expr');
+  const simpleDiv = document.getElementById('kw-simple-input');
+  const exprDiv = document.getElementById('kw-expr-input');
+  if (mode === 'simple') {
+    simpleDiv.style.display = 'block';
+    exprDiv.style.display = 'none';
+    btnSimple.className = 'btn btn-success'; btnSimple.style.opacity = '1';
+    btnExpr.className = 'btn btn-secondary'; btnExpr.style.opacity = '0.6';
+  } else {
+    simpleDiv.style.display = 'none';
+    exprDiv.style.display = 'block';
+    btnExpr.className = 'btn btn-success'; btnExpr.style.opacity = '1';
+    btnSimple.className = 'btn btn-secondary'; btnSimple.style.opacity = '0.6';
+  }
+}
+
+// 关键词启动流水线
+let pipeKwPollTimer = null;
+async function runPipelineKeyword() {
+  const btn = document.getElementById('btn-pipeline-kw');
+  try {
+    let keyword = '';
+    let isExpression = false;
+    if (kwInputMode === 'expr') {
+      keyword = document.getElementById('pipe-expression').value.trim();
+      isExpression = true;
+      if (!keyword) return setStatus('pipe-status', 'error', '请输入布尔表达式');
+    } else {
+      keyword = document.getElementById('pipe-keyword').value.trim();
+      if (!keyword) return setStatus('pipe-status', 'error', '请输入关键词');
+    }
+
+    const platform = document.getElementById('pipe-platform').value;
+    const simSteps = parseInt(document.getElementById('pipe-steps').value) || 5;
+    const useLlm = document.getElementById('pipe-llm').value === 'true';
+    const startTime = document.getElementById('pipe-start-time').value ? document.getElementById('pipe-start-time').value.replace('T', ' ') + (document.getElementById('pipe-start-time').value.length <= 16 ? ':00' : '') : null;
+    const endTime = document.getElementById('pipe-end-time').value ? document.getElementById('pipe-end-time').value.replace('T', ' ') + (document.getElementById('pipe-end-time').value.length <= 16 ? ':00' : '') : null;
+    const downloadSize = parseInt(document.getElementById('pipe-download-size').value) || 50;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 下载数据中...';
+    setStatus('pipe-status', 'info', '⏳ 正在通过关键词下载实时数据，然后进入流水线...');
+    hideResult('pipe-result');
+
+    const body = {
+      keyword: keyword,
+      platform: platform,
+      sim_steps: simSteps,
+      use_llm_sim: useLlm,
+      download_size: downloadSize,
+      is_expression: isExpression
+    };
+    if (startTime) body.start_time = startTime;
+    if (endTime) body.end_time = endTime;
+
+    const resp = await apiCall('/api/pipeline/run_keyword', body);
+    if (resp.status !== 'started') {
+      setStatus('pipe-status', 'error', '❌ 启动失败: ' + (resp.message || '未知错误'));
+      btn.disabled = false;
+      btn.innerHTML = '🚀 关键词启动流水线';
+      return;
+    }
+
+    const taskId = resp.task_id;
+    setStatus('pipe-status', 'info', '⏳ 流水线运行中 (任务ID: ' + taskId + ')：数据下载 → 实体抽取 → ES匹配 → 身份推断 → 画像推演 → 社交模拟...');
+
+    if (pipeKwPollTimer) clearInterval(pipeKwPollTimer);
+    pipeKwPollTimer = setInterval(async () => {
+      try {
+        const st = await apiCall('/api/pipeline/status/' + taskId, undefined, 'GET');
+        if (st.status === 'completed') {
+          clearInterval(pipeKwPollTimer);
+          pipeKwPollTimer = null;
+          const steps = (st.result && st.result.steps) || [];
+          let summary = '✅ 流水线完成 | ';
+          steps.forEach(s => { summary += s.step + ' '; });
+          if (st.result && st.result.download_info) {
+            summary += ' | 下载' + st.result.download_info.downloaded + '条数据';
+          }
+          setStatus('pipe-status', 'success', summary);
+          showResult('pipe-result', st.result);
+          btn.disabled = false;
+          btn.innerHTML = '🚀 关键词启动流水线';
+        } else if (st.status === 'failed') {
+          clearInterval(pipeKwPollTimer);
+          pipeKwPollTimer = null;
+          setStatus('pipe-status', 'error', '❌ 流水线失败: ' + st.error);
+          btn.disabled = false;
+          btn.innerHTML = '🚀 关键词启动流水线';
+        } else if (st.progress) {
+          setStatus('pipe-status', 'info', st.progress);
+        }
+      } catch (e) { /* ignore poll errors */ }
+    }, 3000);
+
+  } catch (e) {
+    setStatus('pipe-status', 'error', '❌ 错误: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '🚀 关键词启动流水线';
+  }
+}
+
+function loadPipelineExample() {
+  const example = {
+    "event_id": "fire_incident_001",
+    "event_type": "突发事件",
+    "event_description": "某商场发生火灾，消防部门紧急救援",
+    "related_content": [
+      "@消防员小王 发布了现场救援视频，展示了消防队员的专业救援过程",
+      "@新闻记者李明 第一时间报道了事件经过，采访了现场目击者",
+      "@商场管理员 发布了疏散通知和安全提示",
+      "user_12345 转发并评论：希望大家都平安，消防员辛苦了",
+      "user_67890 发布了现场照片，记录了火势情况",
+      "#火灾救援 话题下有大量讨论和关注",
+      "@安全专家张教授 分析了火灾原因和预防措施"
+    ],
+    "timestamp": "2025-03-06 10:30:00",
+    "location": "某市中心商场",
+    "severity": "严重"
+  };
+  document.getElementById('pipe-input').value = JSON.stringify(example, null, 2);
+}
+
+let pipePollTimer = null;
+
+async function runPipeline() {
+  const btn = document.getElementById('btn-pipeline');
+  try {
+    let data = parseInput('pipe-input');
+    if (!data) return setStatus('pipe-status', 'error', '请输入事件数据');
+    if (Array.isArray(data)) data = data[0];
+
+    const platform = document.getElementById('pipe-platform').value;
+    const simSteps = parseInt(document.getElementById('pipe-steps').value) || 5;
+    const useLlm = document.getElementById('pipe-llm').value === 'true';
+
+    // 注入控制参数
+    data._platform = platform;
+    data._sim_steps = simSteps;
+    data._use_llm_sim = useLlm;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 运行中...';
+    setStatus('pipe-status', 'info', '⏳ 流水线启动中：实体抽取 → ES匹配 → 身份推断 → 画像推演 → 社交模拟...');
+    hideResult('pipe-result');
+
+    const resp = await apiCall('/api/pipeline/run', data);
+    if (resp.status !== 'started') {
+      setStatus('pipe-status', 'error', '❌ 启动失败: ' + (resp.message || '未知错误'));
+      btn.disabled = false;
+      btn.innerHTML = '🚀 启动流水线';
+      return;
+    }
+
+    const taskId = resp.task_id;
+    setStatus('pipe-status', 'info', '⏳ 流水线运行中 (任务ID: ' + taskId + ')，这可能需要几分钟...');
+
+    if (pipePollTimer) clearInterval(pipePollTimer);
+    pipePollTimer = setInterval(async () => {
+      try {
+        const st = await apiCall('/api/pipeline/status/' + taskId, undefined, 'GET');
+        if (st.status === 'completed') {
+          clearInterval(pipePollTimer);
+          pipePollTimer = null;
+          const steps = (st.result && st.result.steps) || [];
+          let summary = '✅ 流水线完成 | ';
+          steps.forEach(s => { summary += s.step + ' '; });
+          setStatus('pipe-status', 'success', summary);
+          showResult('pipe-result', st.result);
+          btn.disabled = false;
+          btn.innerHTML = '🚀 启动流水线';
+        } else if (st.status === 'failed') {
+          clearInterval(pipePollTimer);
+          pipePollTimer = null;
+          setStatus('pipe-status', 'error', '❌ 流水线失败: ' + st.error);
+          btn.disabled = false;
+          btn.innerHTML = '🚀 启动流水线';
+        } else if (st.progress) {
+          setStatus('pipe-status', 'info', st.progress);
+        }
+      } catch (e) { /* ignore poll errors */ }
+    }, 3000);
+
+  } catch (e) {
+    setStatus('pipe-status', 'error', '❌ 错误: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '🚀 启动流水线';
+  }
+}
+</script>
+</body>
+</html>

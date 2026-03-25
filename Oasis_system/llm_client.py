@@ -73,11 +73,20 @@ class LLMClient:
                         else:
                             json_str = response_content.strip()
                         
-                        result = json.loads(json_str)
-                        return result, response_id, response_content
-                    except json.JSONDecodeError as e:
-                        print(f"JSON解析失败: {e}")
-                        print(f"原始响应: {response_content}")
+                        result = self._robust_json_parse(json_str)
+                        if result is not None:
+                            return result, response_id, response_content
+                        
+                        # 如果提取的部分解析失败，尝试从整个响应中找JSON
+                        result = self._extract_json_from_text(response_content)
+                        if result is not None:
+                            return result, response_id, response_content
+                        
+                        print(f"JSON解析失败，原始响应: {response_content[:200]}")
+                        return {}, response_id, response_content
+                    except Exception as e:
+                        print(f"JSON解析异常: {e}")
+                        print(f"原始响应: {response_content[:200]}")
                         return {}, response_id, response_content
                 else:
                     print(f"请求失败，状态码: {response.status_code}")
@@ -114,3 +123,56 @@ class LLMClient:
                 "raw_response": raw_response
             })
         return results
+
+    @staticmethod
+    def _robust_json_parse(text):
+        """增强的JSON解析，处理LLM常见的格式问题"""
+        import re
+        if not text or not text.strip():
+            return None
+        text = text.strip()
+        # 1. 直接尝试
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+        # 2. 去掉JS风格注释 (// ... 和 /* ... */)
+        cleaned = re.sub(r'//[^\n]*', '', text)
+        cleaned = re.sub(r'/\*.*?\*/', '', cleaned, flags=re.DOTALL)
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            pass
+        # 3. 去掉尾逗号 (,] 或 ,})
+        cleaned = re.sub(r',\s*([}\]])', r'\1', cleaned)
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            pass
+        # 4. 修复单引号
+        try:
+            return json.loads(cleaned.replace("'", '"'))
+        except json.JSONDecodeError:
+            pass
+        return None
+
+    @staticmethod
+    def _extract_json_from_text(text):
+        """从文本中提取第一个完整的JSON对象"""
+        # 找第一个 { 和最后一个 }
+        start = text.find('{')
+        end = text.rfind('}')
+        if start != -1 and end != -1 and end > start:
+            candidate = text[start:end + 1]
+            result = LLMClient._robust_json_parse(candidate)
+            if result is not None:
+                return result
+        # 尝试找数组
+        start = text.find('[')
+        end = text.rfind(']')
+        if start != -1 and end != -1 and end > start:
+            candidate = text[start:end + 1]
+            result = LLMClient._robust_json_parse(candidate)
+            if result is not None:
+                return result
+        return None

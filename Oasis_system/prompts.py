@@ -17,11 +17,16 @@ BASIC_INFO_PROMPT = """
 6. 教育背景推断
 7. 社会阶层推断
 
+# 平台信息
+所属平台：{platform_name}
+平台特征：{platform_features}
+
 # 输入信息
 账号名称：{name}
 身份标签：{identity}
 自我描述：{description}
 认证原因：{verified_reason}
+平台数据补充：{platform_summary}
 
 # 输出要求
 严格按照JSON格式输出，包含以下字段：
@@ -33,8 +38,9 @@ BASIC_INFO_PROMPT = """
     "occupation": "职业身份",
     "education": "教育背景推断",
     "social_class": "社会阶层",
+    "platform_influence": "在该平台的影响力等级：素人/小V/中V/大V/头部",
     "confidence": "整体置信度0-1",
-    "reasoning": "推理依据"
+    "reasoning": "推理依据（结合平台特征分析）"
 }}
 """
 

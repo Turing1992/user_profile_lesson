@@ -161,20 +161,24 @@ class EventAnalyzer:
     def match_profiles(self, entities: Dict) -> List[Dict]:
         """
         在画像库中匹配账号
-        
+
         Args:
             entities: 抽取的实体
-        
+
         Returns:
             匹配到的账号画像列表
         """
         accounts = entities.get("accounts", [])
         matched = []
-        
+
         for account_id in accounts:
-            # 从数据库查询
-            profile = self.storage.get_profile(account_id)
-            
+            # 从数据库查询（容错处理）
+            profile = None
+            try:
+                profile = self.storage.get_profile(account_id)
+            except Exception:
+                pass
+
             if profile:
                 matched.append({
                     "account_id": account_id,
@@ -182,13 +186,13 @@ class EventAnalyzer:
                     "source": "database"
                 })
             else:
-                # 如果数据库没有，标记为需要新建
+                # 如果数据库没有或不可用，标记为需要新建
                 matched.append({
                     "account_id": account_id,
                     "profile": None,
                     "source": "new"
                 })
-        
+
         return matched
     
     def enrich_profiles(self, matched_profiles: List[Dict], 

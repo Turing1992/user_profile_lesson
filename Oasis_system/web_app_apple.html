@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OASIS 分析平台</title>
+<style>
+:root {
+  --bg: #f2f2f7;
+  --card-bg: #ffffff;
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-light: rgba(0,113,227,0.08);
+  --border: rgba(0,0,0,0.06);
+  --success: #30d158;
+  --error: #ff453a;
+  --warning: #ff9f0a;
+  --purple: #bf5af2;
+  --indigo: #5856d6;
+  --teal: #64d2ff;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  --shadow-hover: 0 4px 20px rgba(0,0,0,0.1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Hero Header ===== */
+.hero {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%);
+  padding: 48px 0 56px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -50%; right: -20%; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(191,90,242,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: -40%; left: -10%; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 980px; margin: 0 auto; padding: 0 24px;
+  position: relative; z-index: 1;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 980px; padding: 5px 14px 5px 8px;
+  font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 16px;
+}
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.hero h1 {
+  font-size: 40px; font-weight: 700; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #c084fc 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.hero p { color: rgba(255,255,255,0.6); font-size: 16px; font-weight: 400; letter-spacing: -0.01em; }
+
+/* ===== Sticky Nav ===== */
+.nav-wrap {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(242,242,247,0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid rgba(0,0,0,0.08);
+}
+.nav-inner {
+  max-width: 980px; margin: 0 auto; padding: 10px 24px;
+  display: flex; align-items: center; gap: 4px;
+}
+.tab {
+  padding: 8px 20px; cursor: pointer; color: var(--text-secondary);
+  font-size: 14px; font-weight: 500; border-radius: 980px;
+  transition: all .25s ease; user-select: none; border: none; background: none;
+  position: relative;
+}
+.tab:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+.tab.active {
+  color: #fff; background: var(--accent);
+  box-shadow: 0 2px 8px rgba(0,113,227,0.3);
+}
+
+/* ===== Main ===== */
+.main { max-width: 980px; margin: 0 auto; padding: 28px 24px 80px; }
+.panel { display: none; animation: fadeIn .3s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== Feature Cards (top of each panel) ===== */
+.feature-card {
+  background: var(--card-bg); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 24px 28px; margin-bottom: 20px;
+  border: 1px solid var(--border);
+  transition: box-shadow .3s, transform .3s;
+}
+.feature-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+.feature-card .icon-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.feature-card .icon-circle {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.icon-blue { background: linear-gradient(135deg, #007aff, #5856d6); }
+.icon-green { background: linear-gradient(135deg, #30d158, #34c759); }
+.icon-orange { background: linear-gradient(135deg, #ff9f0a, #ff6723); }
+.icon-purple { background: linear-gradient(135deg, #bf5af2, #5856d6); }
+.feature-card .card-title { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+.feature-card .card-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ===== Form ===== */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.form-group textarea, .form-group input, .form-group select {
+  width: 100%; padding: 11px 16px;
+  background: var(--card-bg); border: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 14px;
+  font-family: inherit; outline: none; transition: all .2s;
+}
+.form-group textarea:focus, .form-group input:focus, .form-group select:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,113,227,0.12);
+}
+.form-group textarea {
+  min-height: 180px; resize: vertical;
+  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace; font-size: 12.5px; line-height: 1.6;
+}
+
+/* ===== Buttons ===== */
+.btn-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.btn {
+  padding: 10px 22px; border: none; border-radius: 980px; cursor: pointer;
+  font-size: 14px; font-weight: 500; transition: all .2s ease;
+  display: inline-flex; align-items: center; gap: 7px; font-family: inherit;
+  position: relative; overflow: hidden;
+}
+.btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  pointer-events: none;
+}
+.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(0,113,227,0.25); }
+.btn-primary:hover { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(0,113,227,0.35); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { background: #b0b0b5; box-shadow: none; cursor: not-allowed; transform: none; }
+.btn-secondary { background: rgba(0,0,0,0.05); color: var(--text); }
+.btn-secondary:hover { background: rgba(0,0,0,0.08); }
+.btn-success { background: var(--success); color: #fff; box-shadow: 0 2px 8px rgba(48,209,88,0.25); }
+.btn-success:hover { background: #2bc84d; box-shadow: 0 4px 12px rgba(48,209,88,0.35); transform: translateY(-1px); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+
+/* ===== Inline params ===== */
+.inline-params { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.inline-params .form-group { flex: 1; min-width: 130px; margin-bottom: 0; }
+
+/* ===== Status ===== */
+.status {
+  padding: 12px 18px; border-radius: var(--radius-sm); font-size: 13px;
+  margin-bottom: 16px; display: none; font-weight: 500;
+  border-left: 4px solid transparent;
+}
+.status.info { display: block; background: #eef4ff; color: #1a56db; border-left-color: var(--accent); }
+.status.error { display: block; background: #fff1f0; color: #dc2626; border-left-color: var(--error); }
+.status.success { display: block; background: #ecfdf5; color: #16a34a; border-left-color: var(--success); }
+
+/* ===== Result ===== */
+.result-box {
+  background: #1a1a2e; border-radius: var(--radius);
+  padding: 20px; margin-top: 16px; max-height: 600px; overflow: auto;
+  box-shadow: var(--shadow-lg);
+}
+.result-box pre {
+  white-space: pre-wrap; word-break: break-all; font-size: 12.5px;
+  line-height: 1.7; color: #a5b4fc;
+  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+}
+
+/* ===== Spinner ===== */
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+  border-radius: 50%; animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span> 系统运行中</div>
+    <h1>OASIS</h1>
+    <p>社交画像推演 · 事件分析 · 智能模拟平台</p>
+  </div>
+</div>
+
+<div class="nav-wrap">
+  <div class="nav-inner">
+    <button class="tab active" onclick="switchTab('profile',this)">🧠 画像推演</button>
+    <button class="tab" onclick="switchTab('simulation',this)">🌐 社交模拟</button>
+    <button class="tab" onclick="switchTab('event',this)">🔍 事件分析</button>
+    <button class="tab" onclick="switchTab('pipeline',this)">⚡ 全流水线</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ========== 画像推演 ========== -->
+<div id="panel-profile" class="panel active">
+  <div class="feature-card">
+    <div class="icon-row">
+      <div class="icon-circle icon-blue">🧠</div>
+      <div class="card-title">账号画像推演</div>
+    </div>
+    <div class="card-desc">输入账号基础信息，系统通过 LLM 推演完整用户画像，涵盖基础信息、身份分析、行为预测、社交推断、内容偏好、风险评估 6 个维度。</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadExample('profile')">📥 加载示例</button>
+    <button class="btn btn-primary" id="btn-profile" onclick="runProfile()">开始推演</button>
+    <button class="btn btn-success" id="btn-profile-batch" onclick="runProfileBatch()">批量推演</button>
+  </div>
+  <div class="form-group">
+    <label>输入数据（单个对象或数组）</label>
+    <textarea id="profile-input" placeholder='{"account_id":"test_001","name":"科技小王","identity":"互联网从业者","description":"985毕业，某大厂产品经理"}'></textarea>
+  </div>
+  <div id="profile-status" class="status"></div>
+  <div id="profile-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+<!-- ========== 社交模拟 ========== -->
+<div id="panel-simulation" class="panel">
+  <div class="feature-card">
+    <div class="icon-row">
+      <div class="icon-circle icon-green">🌐</div>
+      <div class="card-title">社交模拟</div>
+    </div>
+    <div class="card-desc">模拟多个 AI Agent 在虚拟社交平台上的互动行为。可自动生成 Agent 或提供自定义画像，异步执行。</div>
+  </div>
+  <div class="inline-params" style="margin-bottom:16px;">
+    <div class="form-group"><label>平台</label>
+      <select id="sim-platform"><option value="weibo">微博</option><option value="douyin">抖音</option></select>
+    </div>
+    <div class="form-group"><label>Agent 数量</label><input type="number" id="sim-agents" value="10" min="2" max="200"></div>
+    <div class="form-group"><label>模拟步数</label><input type="number" id="sim-steps" value="5" min="1" max="100"></div>
+    <div class="form-group"><label>使用 LLM</label>
+      <select id="sim-llm"><option value="false">否（规则引擎）</option><option value="true">是（LLM 决策）</option></select>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadExample('simulation')">📥 加载画像</button>
+    <button class="btn btn-primary" id="btn-sim" onclick="runSimulation()">启动模拟</button>
+  </div>
+  <div class="form-group">
+    <label>自定义 Agent 画像（可选）</label>
+    <textarea id="sim-input" placeholder="留空则自动生成，或粘贴 JSON 数组..." style="min-height:100px;"></textarea>
+  </div>
+  <div id="sim-status" class="status"></div>
+  <div id="sim-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+<!-- ========== 事件分析 ========== -->
+<div id="panel-event" class="panel">
+  <div class="feature-card">
+    <div class="icon-row">
+      <div class="icon-circle icon-orange">🔍</div>
+      <div class="card-title">事件分析</div>
+    </div>
+    <div class="card-desc">输入事件描述和相关内容，系统自动抽取涉事账号、匹配画像库、推演深度画像，生成完整事件分析报告。</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadExample('event')">📥 加载示例</button>
+    <button class="btn btn-primary" id="btn-event" onclick="runEvent()">分析事件</button>
+    <button class="btn btn-success" id="btn-event-batch" onclick="runEventBatch()">批量分析</button>
+  </div>
+  <div class="form-group">
+    <label>事件数据（单个对象或数组）</label>
+    <textarea id="event-input" placeholder='{"event_id":"fire_001","event_type":"突发事件","event_description":"某商场发生火灾","related_content":["@消防员小王 发布救援视频"]}'></textarea>
+  </div>
+  <div id="event-status" class="status"></div>
+  <div id="event-result" class="result-box" style="display:none;"><pre></pre></div>
+</div>
+
+<!-- ========== 全流水线 ========== -->
+<div id="panel-pipeline" class="panel">
+  <div class="feature-card">
+    <div class="icon-row">
+      <div class="icon-circle icon-purple">⚡</div>
+      <div class="card-title">事件全流水线</div>
+    </div>
+    <div class="card-desc">关键词/事件输入 → 实时数据下载 → 实体抽取 → 官媒过滤 → ES画像匹配 → 身份推断 → 画像推演 → 三分支社交模拟</div>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+      <span class="branch-badge branch-badge-a">🅰 全部账号</span>
+      <span class="branch-badge branch-badge-b">🅱 有身份账号</span>
+      <span class="branch-badge branch-badge-c">🅲 三新身份账号</span>
+    </div>
+  </div>
+
+  <!-- 输入模式 -->
+  <div style="margin-bottom:16px; display:flex; gap:6px;">
+    <button class="btn btn-primary btn-sm" id="mode-keyword" onclick="switchPipeMode('keyword')">🔑 关键词搜索</button>
+    <button class="btn btn-secondary btn-sm" id="mode-json" onclick="switchPipeMode('json')" style="opacity:0.6;">📝 JSON 事件</button>
+  </div>
+
+  <div class="inline-params" style="margin-bottom:16px;">
+    <div class="form-group"><label>推演平台</label>
+      <select id="pipe-platform"><option value="weibo">微博</option><option value="douyin">抖音</option></select>
+    </div>
+    <div class="form-group"><label>模拟步数</label><input type="number" id="pipe-steps" value="5" min="1" max="50" title="建议：≤5人用10步，5-10人用5步，>10人用3步"></div>
+    <div class="form-group"><label>模拟用 LLM</label>
+      <select id="pipe-llm"><option value="false">否（规则引擎）</option><option value="true">是（LLM 决策）</option></select>
+    </div>
+  </div>
+
+  <!-- 关键词模式 -->
+  <div id="pipe-keyword-mode">
+    <div style="margin-bottom:10px; display:flex; gap:6px;">
+      <button class="btn btn-success btn-sm" id="kw-mode-simple" onclick="switchKwInputMode('simple')">🔤 简单关键词</button>
+      <button class="btn btn-secondary btn-sm" id="kw-mode-expr" onclick="switchKwInputMode('expr')" style="opacity:0.6;">🧮 布尔表达式</button>
+    </div>
+    <div id="kw-simple-input" class="form-group">
+      <label>事件关键词 / 标题</label>
+      <input type="text" id="pipe-keyword" placeholder="例如：某商场火灾 或 外卖员猝死，劳动权益">
+    </div>
+    <div id="kw-expr-input" class="form-group" style="display:none;">
+      <label>布尔表达式（AND / OR / 括号嵌套）</label>
+      <textarea id="pipe-expression" style="min-height:80px;" placeholder="(人名 AND (关键词A OR 关键词B)) OR (机构名 AND 关键词C)"></textarea>
+    </div>
+    <div class="inline-params" style="margin-bottom:16px;">
+      <div class="form-group"><label>开始时间</label><input type="datetime-local" id="pipe-start-time" step="1"></div>
+      <div class="form-group"><label>结束时间</label><input type="datetime-local" id="pipe-end-time" step="1"></div>
+      <div class="form-group"><label>下载条数</label><input type="number" id="pipe-download-size" value="50" min="10" max="200"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-pipeline-kw" onclick="runPipelineKeyword()">🚀 启动流水线</button>
+    </div>
+  </div>
+
+  <!-- JSON模式 -->
+  <div id="pipe-json-mode" style="display:none;">
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="loadPipelineExample()">📥 加载示例</button>
+      <button class="btn btn-primary" id="btn-pipeline" onclick="runPipeline()">🚀 启动流水线</button>
+    </div>
+    <div class="form-group">
+      <label>事件数据（JSON）</label>
+      <textarea id="pipe-input" placeholder='{"event_id":"fire_001","event_type":"突发事件","event_description":"某商场发生火灾"}'></textarea>
+    </div>
+  </div>
+
+  <div id="pipe-status" class="status"></div>
+  <div id="pipe-steps-timeline" class="steps-timeline" style="display:none;"></div>
+  <div id="pipe-result-structured" style="display:none;"></div>
+  <div id="pipe-result" class="result-box" style="display:none;"><pre></pre></div>
+  <div id="pipe-history" style="margin-top:16px;"></div>
+</div>
+
+</div><!-- end .main -->
+
+<style>
+/* ===== Branch Badges ===== */
+.branch-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 12px; border-radius: 980px;
+  font-size: 12px; font-weight: 600;
+}
+.branch-badge-a { background: #dbeafe; color: #1e40af; }
+.branch-badge-b { background: #fef3c7; color: #92400e; }
+.branch-badge-c { background: #ede9fe; color: #6d28d9; }
+
+/* ===== Branch Result Sections ===== */
+.branch-section { margin-top: 24px; }
+.branch-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.branch-icon {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.branch-a .branch-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.branch-b .branch-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.branch-c .branch-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.branch-label { font-size: 15px; font-weight: 600; }
+.branch-count { font-size: 12px; color: var(--text-secondary); font-weight: 400; }
+
+/* ===== Sim Tables ===== */
+.sim-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  border-radius: var(--radius-sm); overflow: hidden;
+  box-shadow: var(--shadow); font-size: 13px; margin-bottom: 12px;
+  background: var(--card-bg);
+}
+.sim-table thead th {
+  background: linear-gradient(180deg, #fafafa, #f3f4f6);
+  padding: 11px 16px; text-align: left;
+  font-weight: 600; color: var(--text-secondary); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.sim-table tbody td {
+  padding: 11px 16px; border-bottom: 0.5px solid rgba(0,0,0,0.04);
+  color: var(--text); vertical-align: top;
+}
+.sim-table tbody tr:last-child td { border-bottom: none; }
+.sim-table tbody tr { transition: background .15s; }
+.sim-table tbody tr:hover { background: rgba(0,113,227,0.03); }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 980px;
+  font-size: 11px; font-weight: 600;
+}
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-gray { background: #f3f4f6; color: #6b7280; }
+.badge-yellow { background: #fef3c7; color: #92400e; }
+.skip-notice {
+  padding: 16px 20px; background: rgba(0,0,0,0.02); border: 1px dashed rgba(0,0,0,0.1);
+  border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13px; text-align: center;
+}
+.branch-summary {
+  font-size: 12px; color: var(--text-secondary); padding: 6px 0;
+  display: flex; gap: 16px;
+}
+.branch-summary span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ===== Step Snapshot Timeline ===== */
+.step-timeline { margin-top: 12px; }
+
+/* ===== Summary Report ===== */
+.report-wrap { padding: 4px 0; }
+.report-title {
+  font-size: 18px; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 16px; line-height: 1.4;
+}
+.report-section {
+  margin-bottom: 14px; padding: 12px 16px;
+  background: var(--bg-secondary); border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+}
+.report-section.risk { border-left-color: var(--error); }
+.report-section.recommend { border-left-color: var(--success); }
+.report-section-label {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.report-section.risk .report-section-label { color: var(--error); }
+.report-section.recommend .report-section-label { color: var(--success); }
+.report-section-text {
+  font-size: 13px; color: var(--text-primary); line-height: 1.7;
+  white-space: pre-wrap;
+}
+.step-timeline-title {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;
+}
+.step-timeline-title .toggle-arrow { transition: transform 0.2s; font-size: 11px; }
+.step-timeline-title .toggle-arrow.open { transform: rotate(90deg); }
+.step-timeline-body { display: none; }
+.step-timeline-body.open { display: block; }
+.step-row {
+  display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px; align-items: flex-start;
+}
+.step-row:last-child { border-bottom: none; }
+.step-num {
+  min-width: 36px; height: 24px; border-radius: 12px;
+  background: var(--accent); color: #fff; font-weight: 700; font-size: 11px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.step-stats {
+  display: flex; gap: 10px; flex-wrap: wrap; color: var(--text-secondary); font-size: 11px;
+}
+.step-stats span { white-space: nowrap; }
+.step-actions-list { margin-top: 4px; }
+.step-action-item {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--bg-secondary); border-radius: 6px; padding: 2px 8px;
+  margin: 2px 3px; font-size: 11px; color: var(--text-secondary);
+}
+.step-action-item.success { border-left: 2px solid var(--success); }
+.step-action-item.fail { border-left: 2px solid var(--error); opacity: 0.6; }
+
+/* ===== Steps Timeline ===== */
+.steps-timeline { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.step-chip {
+  padding: 5px 12px; border-radius: 980px; font-size: 11px; font-weight: 600;
+  background: rgba(0,0,0,0.04); color: var(--text-secondary);
+  transition: all .3s;
+}
+.step-chip.done { background: #ecfdf5; color: #059669; }
+
+/* ===== Detail Sections ===== */
+.detail-section {
+  background: var(--card-bg); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid var(--border);
+  margin-bottom: 20px; overflow: hidden;
+}
+.detail-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px; cursor: pointer; user-select: none;
+  transition: background .15s;
+}
+.detail-header:hover { background: rgba(0,0,0,0.02); }
+.detail-header .arrow {
+  font-size: 12px; color: var(--text-secondary);
+  transition: transform .2s; display: inline-block;
+}
+.detail-header.open .arrow { transform: rotate(90deg); }
+.detail-header .detail-title { font-size: 15px; font-weight: 600; }
+.detail-header .detail-count {
+  font-size: 12px; color: var(--text-secondary);
+  background: rgba(0,0,0,0.04); padding: 2px 10px; border-radius: 980px;
+}
+.detail-body { padding: 0 20px 20px; display: none; }
+.detail-body.open { display: block; }
+.detail-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: 12px; border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.detail-table thead th {
+  background: #f5f5f7; padding: 8px 12px; text-align: left;
+  font-weight: 600; color: var(--text-secondary); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.detail-table tbody td {
+  padding: 8px 12px; border-bottom: 0.5px solid rgba(0,0,0,0.04);
+  color: var(--text); vertical-align: top; max-width: 200px;
+  word-break: break-all;
+}
+.detail-table tbody tr:last-child td { border-bottom: none; }
+.detail-table tbody tr:hover { background: rgba(0,113,227,0.02); }
+.profile-card {
+  background: #fafafa; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px;
+}
+.profile-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.profile-card-name { font-size: 15px; font-weight: 600; }
+.profile-card-source { font-size: 11px; padding: 2px 8px; border-radius: 980px; }
+.source-es { background: #dbeafe; color: #1e40af; }
+.source-inferred { background: #fef3c7; color: #92400e; }
+.profile-dims { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dim-block { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.dim-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+.dim-content { font-size: 12px; color: var(--text); line-height: 1.5; max-height: 120px; overflow: auto; }
+.dim-content pre { white-space: pre-wrap; word-break: break-all; font-family: 'SF Mono', monospace; font-size: 11px; }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+.result-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center; padding: 24px; color: var(--text-secondary);
+  font-size: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  max-width: 980px; margin: 0 auto;
+}
+</style>
+
+<div class="footer">OASIS Platform · Powered by LLM</div>
+
+<script>
+
+// ========== Tab 切换 ==========
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ========== 工具函数 ==========
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.innerHTML = msg;
+}
+function showResult(id, data) {
+  const box = document.getElementById(id);
+  box.style.display = 'block';
+  box.querySelector('pre').textContent = JSON.stringify(data, null, 2);
+}
+function hideResult(id) { document.getElementById(id).style.display = 'none'; }
+function parseInput(id) {
+  const raw = document.getElementById(id).value.trim();
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+async function apiCall(url, data, method = 'POST') {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (data !== undefined && method !== 'GET') opts.body = JSON.stringify(data);
+  const resp = await fetch(url, opts);
+  return await resp.json();
+}
+
+// ========== 加载示例 ==========
+async function loadExample(type) {
+  try {
+    const data = await apiCall('/api/examples/' + type, undefined, 'GET');
+    const inputId = type === 'simulation' ? 'sim-input' : type === 'event' ? 'event-input' : 'profile-input';
+    document.getElementById(inputId).value = JSON.stringify(data, null, 2);
+  } catch (e) { alert('加载示例失败: ' + e.message); }
+}
+
+// ========== 模块1: 画像推演 ==========
+async function runProfile() {
+  const btn = document.getElementById('btn-profile');
+  try {
+    const data = parseInput('profile-input');
+    if (!data) return setStatus('profile-status', 'error', '请输入数据');
+    const single = Array.isArray(data) ? data[0] : data;
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 推演中...';
+    setStatus('profile-status', 'info', '⏳ 正在调用 LLM 进行 6 维度推演...');
+    hideResult('profile-result');
+    const result = await apiCall('/api/profile/analyze', single);
+    setStatus('profile-status', 'success', '✅ 推演完成');
+    showResult('profile-result', result);
+  } catch (e) { setStatus('profile-status', 'error', '❌ ' + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = '开始推演'; }
+}
+async function runProfileBatch() {
+  const btn = document.getElementById('btn-profile-batch');
+  try {
+    let data = parseInput('profile-input');
+    if (!data) return setStatus('profile-status', 'error', '请输入数据');
+    if (!Array.isArray(data)) data = [data];
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 批量推演中...';
+    setStatus('profile-status', 'info', '⏳ 正在批量推演 ' + data.length + ' 个账号...');
+    hideResult('profile-result');
+    const result = await apiCall('/api/profile/batch', data);
+    setStatus('profile-status', 'success', '✅ 批量推演完成，共 ' + data.length + ' 个');
+    showResult('profile-result', result);
+  } catch (e) { setStatus('profile-status', 'error', '❌ ' + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = '批量推演'; }
+}
+
+// ========== 模块2: 社交模拟 ==========
+let simPollTimer = null;
+async function runSimulation() {
+  const btn = document.getElementById('btn-sim');
+  try {
+    const platform = document.getElementById('sim-platform').value;
+    const agentCount = parseInt(document.getElementById('sim-agents').value) || 10;
+    const steps = parseInt(document.getElementById('sim-steps').value) || 5;
+    const useLlm = document.getElementById('sim-llm').value === 'true';
+    let profiles = null;
+    const raw = document.getElementById('sim-input').value.trim();
+    if (raw) { profiles = JSON.parse(raw); if (!Array.isArray(profiles)) profiles = [profiles]; }
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 启动中...';
+    setStatus('sim-status', 'info', '⏳ 正在启动模拟...');
+    hideResult('sim-result');
+    const body = { platform, agent_count: agentCount, steps, use_llm: useLlm };
+    if (profiles) body.profiles = profiles;
+    const resp = await apiCall('/api/simulation/start', body);
+    if (resp.status !== 'started') { setStatus('sim-status', 'error', '❌ ' + (resp.message || '启动失败')); return; }
+    const taskId = resp.task_id;
+    setStatus('sim-status', 'info', '⏳ 模拟运行中 (ID: ' + taskId + ')...');
+    if (simPollTimer) clearInterval(simPollTimer);
+    simPollTimer = setInterval(async () => {
+      try {
+        const st = await apiCall('/api/simulation/status/' + taskId, undefined, 'GET');
+        if (st.status === 'completed') {
+          clearInterval(simPollTimer); simPollTimer = null;
+          setStatus('sim-status', 'success', '✅ 模拟完成');
+          showResult('sim-result', st.result);
+          btn.disabled = false; btn.innerHTML = '启动模拟';
+        } else if (st.status === 'failed') {
+          clearInterval(simPollTimer); simPollTimer = null;
+          setStatus('sim-status', 'error', '❌ ' + st.error);
+          btn.disabled = false; btn.innerHTML = '启动模拟';
+        }
+      } catch (e) {}
+    }, 2000);
+  } catch (e) {
+    setStatus('sim-status', 'error', '❌ ' + e.message);
+    btn.disabled = false; btn.innerHTML = '启动模拟';
+  }
+}
+
+// ========== 模块3: 事件分析 ==========
+async function runEvent() {
+  const btn = document.getElementById('btn-event');
+  try {
+    const data = parseInput('event-input');
+    if (!data) return setStatus('event-status', 'error', '请输入事件数据');
+    const single = Array.isArray(data) ? data[0] : data;
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 分析中...';
+    setStatus('event-status', 'info', '⏳ 正在分析事件...');
+    hideResult('event-result');
+    const result = await apiCall('/api/event/analyze', single);
+    setStatus('event-status', 'success', '✅ 事件分析完成');
+    showResult('event-result', result);
+  } catch (e) { setStatus('event-status', 'error', '❌ ' + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = '分析事件'; }
+}
+async function runEventBatch() {
+  const btn = document.getElementById('btn-event-batch');
+  try {
+    let data = parseInput('event-input');
+    if (!data) return setStatus('event-status', 'error', '请输入事件数据');
+    if (!Array.isArray(data)) data = [data];
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 批量分析中...';
+    setStatus('event-status', 'info', '⏳ 正在批量分析 ' + data.length + ' 个事件...');
+    hideResult('event-result');
+    const result = await apiCall('/api/event/batch', data);
+    setStatus('event-status', 'success', '✅ 批量分析完成');
+    showResult('event-result', result);
+  } catch (e) { setStatus('event-status', 'error', '❌ ' + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = '批量分析'; }
+}
+
+// ========== 模块4: 全流水线 ==========
+function switchPipeMode(mode) {
+  const kwMode = document.getElementById('pipe-keyword-mode');
+  const jsonMode = document.getElementById('pipe-json-mode');
+  const btnKw = document.getElementById('mode-keyword');
+  const btnJson = document.getElementById('mode-json');
+  if (mode === 'keyword') {
+    kwMode.style.display = 'block'; jsonMode.style.display = 'none';
+    btnKw.className = 'btn btn-primary btn-sm'; btnKw.style.opacity = '1';
+    btnJson.className = 'btn btn-secondary btn-sm'; btnJson.style.opacity = '0.6';
+  } else {
+    kwMode.style.display = 'none'; jsonMode.style.display = 'block';
+    btnJson.className = 'btn btn-primary btn-sm'; btnJson.style.opacity = '1';
+    btnKw.className = 'btn btn-secondary btn-sm'; btnKw.style.opacity = '0.6';
+  }
+}
+
+let kwInputMode = 'simple';
+function switchKwInputMode(mode) {
+  kwInputMode = mode;
+  const btnSimple = document.getElementById('kw-mode-simple');
+  const btnExpr = document.getElementById('kw-mode-expr');
+  if (mode === 'simple') {
+    document.getElementById('kw-simple-input').style.display = 'block';
+    document.getElementById('kw-expr-input').style.display = 'none';
+    btnSimple.className = 'btn btn-success btn-sm'; btnSimple.style.opacity = '1';
+    btnExpr.className = 'btn btn-secondary btn-sm'; btnExpr.style.opacity = '0.6';
+  } else {
+    document.getElementById('kw-simple-input').style.display = 'none';
+    document.getElementById('kw-expr-input').style.display = 'block';
+    btnExpr.className = 'btn btn-success btn-sm'; btnExpr.style.opacity = '1';
+    btnSimple.className = 'btn btn-secondary btn-sm'; btnSimple.style.opacity = '0.6';
+  }
+}
+
+// ===== 渲染全部结构化结果 =====
+function renderStructuredResults(result) {
+  const container = document.getElementById('pipe-result-structured');
+  if (!result) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  container.innerHTML = '';
+
+  // 0. 事件概览 + 数据下载 + 实体抽取
+  const overviewEl = buildEventOverview(result);
+  if (overviewEl) container.appendChild(overviewEl);
+
+  // 1. ES 匹配详情表格
+  if (result.es_matched_details && Object.keys(result.es_matched_details).length > 0) {
+    container.appendChild(buildCollapsible(
+      '📊 ES 匹配账号详情',
+      Object.keys(result.es_matched_details).length + ' 个匹配',
+      buildESTable(result.es_matched_details),
+      true
+    ));
+  }
+
+  // 2. 推演结果详情
+  if (result.profile_results && result.profile_results.length > 0) {
+    container.appendChild(buildCollapsible(
+      '🧠 画像推演详情',
+      result.profile_results.length + ' 个账号',
+      buildProfileCards(result.profile_results),
+      false
+    ));
+  }
+
+  // 3. 三分支模拟
+  if (result.simulations) {
+    container.appendChild(buildCollapsible(
+      '🌐 三分支社交模拟',
+      '',
+      buildBranchTables(result),
+      true
+    ));
+  }
+
+  // 4. 舆情推演分析报告
+  if (result.summary_report && !result.summary_report.error) {
+    container.appendChild(buildCollapsible(
+      '📋 舆情推演分析报告',
+      '',
+      buildSummaryReport(result.summary_report),
+      true
+    ));
+  }
+}
+
+// ===== 事件概览（事件信息 + 下载详情 + 实体抽取） =====
+function buildEventOverview(result) {
+  const ei = result.event_info;
+  const dl = result.download_info;
+  const ent = result.extracted_entities;
+  if (!ei && !dl && !ent) return null;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'report-wrap';
+
+  // 事件信息
+  if (ei) {
+    const sec = document.createElement('div');
+    sec.className = 'report-section';
+    let html = '<div class="report-section-label">📌 事件信息</div><div class="report-section-text">';
+    if (ei.event_id) html += '事件ID: ' + escHtml(ei.event_id) + '\n';
+    if (ei.event_description) html += '描述: ' + escHtml(ei.event_description) + '\n';
+    if (result.platform) html += '推演平台: ' + (result.platform === 'weibo' ? '微博' : '抖音');
+    html += '</div>';
+    sec.innerHTML = html;
+    wrap.appendChild(sec);
+  }
+
+  // 数据下载详情
+  if (dl) {
+    const sec = document.createElement('div');
+    sec.className = 'report-section';
+    let html = '<div class="report-section-label">📥 数据下载</div><div class="report-section-text">';
+    html += '下载条数: ' + (dl.downloaded || 0) + ' / 总量: ' + (dl.total_count || '未知') + '\n';
+    if (dl.sources && dl.sources.length > 0) html += '数据来源: ' + dl.sources.join(', ') + '\n';
+    if (dl.accounts_found && dl.accounts_found.length > 0) html += '发现账号: ' + dl.accounts_found.join(', ');
+    html += '</div>';
+    sec.innerHTML = html;
+    wrap.appendChild(sec);
+  }
+
+  // 实体抽取结果
+  if (ent) {
+    const sec = document.createElement('div');
+    sec.className = 'report-section';
+    let html = '<div class="report-section-label">🔍 实体抽取</div><div class="report-section-text">';
+    const accounts = ent.accounts || [];
+    const keywords = ent.keywords || [];
+    html += '抽取账号 (' + accounts.length + '): ' + (accounts.length > 0 ? accounts.join(', ') : '无') + '\n';
+    html += '抽取关键词 (' + keywords.length + '): ' + (keywords.length > 0 ? keywords.join(', ') : '无');
+    // 过滤信息从 steps 里取
+    const filterStep = (result.steps || []).find(s => s.step === '官方媒体过滤');
+    if (filterStep) {
+      html += '\n官方媒体过滤: ' + ((filterStep.official_removed || []).join(', ') || '无');
+      html += '\n保留个人账号: ' + ((filterStep.personal_kept || []).join(', ') || '无');
+    }
+    html += '\n\n💡 提示：如果抽取结果不准确，可切换到「JSON 事件」模式，在 related_content 中手动指定账号名（@账号名格式）';
+    html += '</div>';
+    sec.innerHTML = html;
+    wrap.appendChild(sec);
+  }
+
+  const collapsible = buildCollapsible('📋 事件概览与数据摘要', '', wrap, false);
+  return collapsible;
+}
+
+function buildCollapsible(title, countText, contentEl, defaultOpen) {
+  const section = document.createElement('div');
+  section.className = 'detail-section';
+  const header = document.createElement('div');
+  header.className = 'detail-header' + (defaultOpen ? ' open' : '');
+  header.innerHTML = '<span class="arrow">▶</span><span class="detail-title">' + title + '</span>' +
+    (countText ? '<span class="detail-count">' + countText + '</span>' : '');
+  const body = document.createElement('div');
+  body.className = 'detail-body' + (defaultOpen ? ' open' : '');
+  body.appendChild(contentEl);
+  header.onclick = function() {
+    header.classList.toggle('open');
+    body.classList.toggle('open');
+  };
+  section.appendChild(header);
+  section.appendChild(body);
+  return section;
+}
+
+// ===== ES 匹配详情表格 =====
+function buildESTable(esDetails) {
+  const wrap = document.createElement('div');
+  wrap.style.overflowX = 'auto';
+  const table = document.createElement('table');
+  table.className = 'detail-table';
+  const fields = ['name','uid','site_name','identity','identity_standerd','community','three_new_identity','description','verified_reason','gender','age','ip_region','followers_count','_score','_index'];
+  const labels = ['名称','UID','平台','身份','标准身份','社群(community)','三新身份','简介','认证原因','性别','年龄','IP地区','粉丝数','匹配分','索引'];
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr>' + labels.map(l => '<th>' + l + '</th>').join('') + '</tr>';
+  table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  Object.values(esDetails).forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = fields.map(f => {
+      let v = d[f];
+      if (v === undefined || v === null) v = '-';
+      if (typeof v === 'object') v = JSON.stringify(v, null, 0);
+      v = String(v);
+      if (f === 'community' || f === 'three_new_identity') {
+        return '<td><span class="badge badge-yellow">' + escHtml(v) + '</span></td>';
+      }
+      if (f === '_score') return '<td style="font-weight:600;">' + escHtml(v) + '</td>';
+      return '<td>' + escHtml(v) + '</td>';
+    }).join('');
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  return wrap;
+}
+
+// ===== 推演结果卡片 =====
+function buildProfileCards(profileResults) {
+  const wrap = document.createElement('div');
+  profileResults.forEach(pr => {
+    const card = document.createElement('div');
+    card.className = 'profile-card';
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'profile-card-header';
+    const srcClass = pr.source === 'es_matched' ? 'source-es' : 'source-inferred';
+    const srcLabel = pr.source === 'es_matched' ? 'ES匹配' : 'LLM推断';
+    const statusLabel = pr.status === 'success' ? '✅ 推演完成' : pr.status === 'skipped' ? '⏭ 跳过' : pr.status === 'failed' ? '❌ 失败' : pr.status;
+    const statusCls = pr.status === 'success' ? 'badge-green' : pr.status === 'skipped' ? 'badge-yellow' : 'badge-gray';
+    hdr.innerHTML = '<span class="profile-card-name">' + escHtml(pr.account_id || '未知') + '</span>' +
+      '<span class="profile-card-source ' + srcClass + '">' + srcLabel + '</span>' +
+      '<span class="badge badge-gray">' + escHtml(pr.platform || '') + '</span>' +
+      '<span class="badge ' + statusCls + '">' + statusLabel + '</span>';
+    card.appendChild(hdr);
+
+    if (pr.status === 'skipped') {
+      const info = document.createElement('div');
+      info.style.cssText = 'color:var(--text-secondary); font-size:13px; padding:4px 0;';
+      info.textContent = '跳过原因: ' + (pr.reason || '无三新身份');
+      card.appendChild(info);
+      // 仍然展示 ES 原始数据
+      if (pr.es_data) {
+        card.appendChild(buildKVTable(pr.es_data, 'ES 原始数据'));
+      }
+    } else if (pr.status === 'failed') {
+      const err = document.createElement('div');
+      err.style.cssText = 'color:var(--error); font-size:13px;';
+      err.textContent = '推演失败: ' + (pr.error || '未知');
+      card.appendChild(err);
+    } else if (pr.profile) {
+      const dims = document.createElement('div');
+      dims.className = 'profile-dims';
+      const dimNames = [
+        ['basic_info', '基础信息'],
+        ['identity_analysis', '身份分析'],
+        ['behavior_prediction', '行为预测'],
+        ['social_inference', '社交推断'],
+        ['content_preference', '内容偏好'],
+        ['risk_assessment', '风险评估']
+      ];
+      dimNames.forEach(([key, label]) => {
+        const dimData = pr.profile[key];
+        if (!dimData) return;
+        const dataVal = dimData.data || dimData;
+        const block = document.createElement('div');
+        block.className = 'dim-block';
+        block.innerHTML = '<div class="dim-label">' + label + '</div>';
+        const content = document.createElement('div');
+        content.className = 'dim-content';
+        if (typeof dataVal === 'object' && dataVal !== null && !Array.isArray(dataVal)) {
+          content.appendChild(buildFlatKVTable(dataVal));
+        } else {
+          const pre = document.createElement('pre');
+          pre.textContent = typeof dataVal === 'object' ? JSON.stringify(dataVal, null, 2) : String(dataVal);
+          content.appendChild(pre);
+        }
+        block.appendChild(content);
+        dims.appendChild(block);
+      });
+      card.appendChild(dims);
+
+      // ES 原始数据
+      if (pr.es_data) {
+        card.appendChild(buildKVTable(pr.es_data, 'ES 原始数据'));
+      }
+      // 推断身份信息
+      if (pr.inferred_identity) {
+        card.appendChild(buildKVTable(pr.inferred_identity, 'LLM 推断身份'));
+      }
+    }
+    wrap.appendChild(card);
+  });
+  return wrap;
+}
+
+// 构建 key-value 表格（带标题）
+function buildKVTable(obj, title) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-top:10px; padding-top:10px; border-top:1px solid var(--border);';
+  if (title) wrap.innerHTML = '<div class="dim-label" style="margin-bottom:6px;">' + title + '</div>';
+  wrap.appendChild(buildFlatKVTable(obj));
+  return wrap;
+}
+
+// 递归展开 JSON 为 key-value 表格
+function buildFlatKVTable(obj) {
+  const table = document.createElement('table');
+  table.className = 'detail-table';
+  table.style.fontSize = '12px';
+  const tbody = document.createElement('tbody');
+  flattenAndRender(obj, '', tbody);
+  table.appendChild(tbody);
+  return table;
+}
+
+function flattenAndRender(obj, prefix, tbody) {
+  if (!obj || typeof obj !== 'object') return;
+  const entries = Array.isArray(obj) ? obj.map((v, i) => [i, v]) : Object.entries(obj);
+  entries.forEach(([key, val]) => {
+    const fullKey = prefix ? prefix + '.' + key : String(key);
+    if (val && typeof val === 'object' && !Array.isArray(val) && Object.keys(val).length <= 10) {
+      // 嵌套对象，递归展开
+      flattenAndRender(val, fullKey, tbody);
+    } else {
+      const tr = document.createElement('tr');
+      const tdKey = document.createElement('td');
+      tdKey.style.cssText = 'font-weight:600; color:var(--text-secondary); white-space:nowrap; width:140px; vertical-align:top;';
+      tdKey.textContent = fullKey;
+      const tdVal = document.createElement('td');
+      tdVal.style.cssText = 'word-break:break-all;';
+      if (Array.isArray(val)) {
+        tdVal.textContent = val.map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)).join(', ');
+      } else if (val && typeof val === 'object') {
+        tdVal.textContent = JSON.stringify(val);
+      } else {
+        tdVal.textContent = val === null || val === undefined ? '-' : String(val);
+      }
+      tr.appendChild(tdKey);
+      tr.appendChild(tdVal);
+      tbody.appendChild(tr);
+    }
+  });
+}
+
+// ===== 群体画像深度分析 =====
+function buildGroupAnalysis(analysis) {
+  const wrap = document.createElement('div');
+  wrap.className = 'report-wrap';
+
+  const sections = [
+    { key: 'group_composition', label: '🏷️ 群体构成', cls: '' },
+    { key: 'common_traits', label: '🔗 共性特征', cls: '' },
+    { key: 'influence_hierarchy', label: '📊 影响力层级', cls: '' },
+    { key: 'stance_prediction', label: '🎯 立场预判', cls: '' },
+    { key: 'motivation_analysis', label: '💡 传播动机', cls: '' },
+    { key: 'risk_profiles', label: '⚠️ 高风险账号', cls: 'risk' },
+    { key: 'profile_depth_note', label: '📝 画像深度说明', cls: 'recommend' },
+  ];
+
+  sections.forEach(s => {
+    const text = analysis[s.key];
+    if (!text) return;
+    const sec = document.createElement('div');
+    sec.className = 'report-section' + (s.cls ? ' ' + s.cls : '');
+    sec.innerHTML = '<div class="report-section-label">' + s.label + '</div>' +
+      '<div class="report-section-text">' + escHtml(text) + '</div>';
+    wrap.appendChild(sec);
+  });
+
+  return wrap;
+}
+
+// ===== 舆情推演分析报告 =====
+function buildSummaryReport(report) {
+  const wrap = document.createElement('div');
+  wrap.className = 'report-wrap';
+
+  if (report.title) {
+    const title = document.createElement('div');
+    title.className = 'report-title';
+    title.textContent = report.title;
+    wrap.appendChild(title);
+  }
+
+  const sections = [
+    { key: 'overview', label: '📌 事件概述', cls: '' },
+    { key: 'spread_prediction', label: '📈 传播预测', cls: '' },
+    { key: 'key_actors', label: '👥 关键角色分析', cls: '' },
+    { key: 'sentiment_trend', label: '💭 舆情走向', cls: '' },
+    { key: 'branch_comparison', label: '🔀 三分支对比分析', cls: '' },
+    { key: 'risk_points', label: '⚠️ 风险提示', cls: 'risk' },
+    { key: 'recommendations', label: '✅ 应对建议', cls: 'recommend' },
+  ];
+
+  sections.forEach(s => {
+    const text = report[s.key];
+    if (!text) return;
+    const sec = document.createElement('div');
+    sec.className = 'report-section' + (s.cls ? ' ' + s.cls : '');
+    sec.innerHTML = '<div class="report-section-label">' + s.label + '</div>' +
+      '<div class="report-section-text">' + escHtml(text) + '</div>';
+    wrap.appendChild(sec);
+  });
+
+  return wrap;
+}
+
+// ===== 三分支模拟表格 =====
+function buildBranchTables(result) {
+  const wrap = document.createElement('div');
+  const branchConfig = [
+    { key: 'branch_a_all', label: '全部账号模拟', icon: 'A', cls: 'branch-a' },
+    { key: 'branch_b_identity', label: '有身份(identity)账号模拟', icon: 'B', cls: 'branch-b' },
+    { key: 'branch_c_community', label: '有三新身份(community)账号模拟', icon: 'C', cls: 'branch-c' },
+  ];
+
+  branchConfig.forEach(cfg => {
+    const branch = result.simulations[cfg.key];
+    if (!branch) return;
+
+    const section = document.createElement('div');
+    section.className = 'branch-section ' + cfg.cls;
+
+    const header = document.createElement('div');
+    header.className = 'branch-header';
+    header.innerHTML = '<div class="branch-icon">' + cfg.icon + '</div>' +
+      '<div><div class="branch-label">分支' + cfg.icon + ': ' + cfg.label + '</div>' +
+      '<div class="branch-count">' + (branch.agent_count || 0) + ' 个 Agent</div></div>';
+    section.appendChild(header);
+
+    if (branch.skipped) {
+      const notice = document.createElement('div');
+      notice.className = 'skip-notice';
+      notice.textContent = '⏭ 已跳过 — ' + (branch.reason || '账号不足');
+      section.appendChild(notice);
+    } else if (branch.status === 'failed') {
+      const notice = document.createElement('div');
+      notice.className = 'skip-notice';
+      notice.style.borderColor = 'rgba(255,69,58,0.3)'; notice.style.color = 'var(--error)';
+      notice.textContent = '❌ 模拟失败: ' + (branch.error || '未知错误');
+      section.appendChild(notice);
+    } else if (branch.result) {
+      const agents = branch.result.agents || [];
+      const pStats = branch.result.platform_stats || {};
+
+      const table = document.createElement('table');
+      table.className = 'sim-table';
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr><th>Agent</th><th>身份</th><th>兴趣</th><th>平台</th><th>行为次数</th><th>行为明细</th></tr>';
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      let totalActions = 0;
+      agents.forEach(agent => {
+        const agentName = agent.username || agent.name || agent.account_id || '未知';
+        const identity = agent.identity || '-';
+        const interests = (agent.interests || []).slice(0, 3).join(', ') || '-';
+        const platform = agent.platform || '-';
+        const actionCount = agent.successful_actions || agent.action_count || 0;
+        totalActions += actionCount;
+        // 行为明细
+        const breakdown = agent.action_breakdown || {};
+        let breakdownHtml = '-';
+        if (Object.keys(breakdown).length > 0) {
+          breakdownHtml = Object.entries(breakdown).map(([k, v]) => {
+            const labels = {create_post:'发帖',create_comment:'评论',like_post:'点赞',repost:'转发',follow:'关注',search_posts:'搜索',view_feed:'刷信息流',view_trending:'看热搜',do_nothing:'划走'};
+            return '<span class="badge badge-gray" style="margin:1px;">' + (labels[k]||k) + ':' + v + '</span>';
+          }).join(' ');
+        }
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td style="font-weight:500;">' + escHtml(agentName) + '</td>' +
+          '<td><span class="badge badge-blue">' + escHtml(truncate(identity, 20)) + '</span></td>' +
+          '<td style="color:var(--text-secondary);">' + escHtml(truncate(interests, 30)) + '</td>' +
+          '<td><span class="badge badge-gray">' + escHtml(platform) + '</span></td>' +
+          '<td style="font-weight:600;">' + actionCount + '</td>' +
+          '<td>' + breakdownHtml + '</td>';
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      section.appendChild(table);
+
+      const summary = document.createElement('div');
+      summary.className = 'branch-summary';
+      summary.innerHTML = '<span>👥 ' + agents.length + ' Agent</span>' +
+        '<span>🎯 ' + totalActions + ' 次行为</span>' +
+        '<span>📝 ' + (pStats.total_posts || 0) + ' 帖子</span>' +
+        '<span>❤️ ' + (pStats.total_likes || 0) + ' 赞</span>' +
+        '<span>💬 ' + (pStats.total_comments || 0) + ' 评论</span>' +
+        '<span>🔄 ' + (pStats.total_reposts || 0) + ' 转发</span>';
+      section.appendChild(summary);
+
+      // ===== 每步推演过程 =====
+      const snapshots = branch.result.step_snapshots || [];
+      if (snapshots.length > 0) {
+        const timeline = document.createElement('div');
+        timeline.className = 'step-timeline';
+
+        const actionLabels = {create_post:'📝发帖',create_comment:'💬评论',like_post:'❤️点赞',repost:'🔄转发',follow:'➕关注',search_posts:'🔍搜索',view_feed:'📱刷信息流',view_trending:'🔥看热搜',do_nothing:'😴划走',error:'❌异常'};
+
+        const title = document.createElement('div');
+        title.className = 'step-timeline-title';
+        title.innerHTML = '<span class="toggle-arrow">▶</span> 📊 推演过程（' + snapshots.length + ' 步）';
+        const body = document.createElement('div');
+        body.className = 'step-timeline-body';
+        title.onclick = function() {
+          const arrow = title.querySelector('.toggle-arrow');
+          if (body.classList.contains('open')) {
+            body.classList.remove('open'); arrow.classList.remove('open');
+          } else {
+            body.classList.add('open'); arrow.classList.add('open');
+          }
+        };
+
+        snapshots.forEach(snap => {
+          const row = document.createElement('div');
+          row.className = 'step-row';
+
+          const ps = snap.platform_stats || {};
+          let statsHtml = '<div style="flex:1;"><div class="step-stats">' +
+            '<span>📝' + (ps.total_posts||0) + '帖</span>' +
+            '<span>❤️' + (ps.total_likes||0) + '赞</span>' +
+            '<span>💬' + (ps.total_comments||0) + '评</span>' +
+            '<span>🔄' + (ps.total_reposts||0) + '转</span>' +
+            '<span>⚡' + (snap.actions_executed||0) + '/' + (snap.actions||[]).length + '成功</span>' +
+            '</div>';
+
+          // 每步的行为明细
+          const actions = snap.actions || [];
+          if (actions.length > 0) {
+            statsHtml += '<div class="step-actions-list">';
+            actions.forEach(a => {
+              const cls = a.success ? 'success' : 'fail';
+              const label = actionLabels[a.action] || a.action;
+              let detail = '<b>' + escHtml(a.agent||'') + '</b> ' + label;
+              if (a.content) detail += ' "' + escHtml(a.content.substring(0, 30)) + (a.content.length > 30 ? '...' : '') + '"';
+              statsHtml += '<span class="step-action-item ' + cls + '">' + detail + '</span>';
+            });
+            statsHtml += '</div>';
+          }
+          statsHtml += '</div>';
+
+          row.innerHTML = '<div class="step-num">第' + snap.step + '步</div>' + statsHtml;
+          body.appendChild(row);
+        });
+
+        timeline.appendChild(title);
+        timeline.appendChild(body);
+        section.appendChild(timeline);
+      }
+
+      // 分支深度分析
+      const ba = branch.branch_analysis;
+      if (ba && !ba.error) {
+        const analysisWrap = document.createElement('div');
+        analysisWrap.style.marginTop = '12px';
+        const aTitle = document.createElement('div');
+        aTitle.className = 'step-timeline-title';
+        aTitle.innerHTML = '<span class="toggle-arrow">▶</span> 👥 群体深度分析';
+        const aBody = document.createElement('div');
+        aBody.className = 'step-timeline-body';
+        aTitle.onclick = function() {
+          const arrow = aTitle.querySelector('.toggle-arrow');
+          if (aBody.classList.contains('open')) { aBody.classList.remove('open'); arrow.classList.remove('open'); }
+          else { aBody.classList.add('open'); arrow.classList.add('open'); }
+        };
+        aBody.appendChild(buildGroupAnalysis(ba));
+        analysisWrap.appendChild(aTitle);
+        analysisWrap.appendChild(aBody);
+        section.appendChild(analysisWrap);
+      }
+    } else if (branch.status === 'failed' && branch.branch_analysis && !branch.branch_analysis.error) {
+      // 模拟失败但分析成功的情况
+      section.appendChild(buildGroupAnalysis(branch.branch_analysis));
+    } else {
+      const agentList = branch.agents || [];
+      if (agentList.length > 0) {
+        const info = document.createElement('div');
+        info.className = 'skip-notice';
+        info.textContent = 'Agent: ' + agentList.join(', ');
+        section.appendChild(info);
+      }
+    }
+    wrap.appendChild(section);
+  });
+  return wrap;
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function truncate(s, n) { if (!s) return '-'; return s.length > n ? s.substring(0, n) + '...' : s; }
+
+// ===== 进度时间线 =====
+function updateStepsTimeline(steps) {
+  const el = document.getElementById('pipe-steps-timeline');
+  if (!steps || steps.length === 0) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = '';
+  steps.forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'step-chip done';
+    chip.textContent = '✓ ' + s.step;
+    el.appendChild(chip);
+  });
+}
+
+// ===== 关键词启动流水线 =====
+let pipeKwPollTimer = null;
+async function runPipelineKeyword() {
+  const btn = document.getElementById('btn-pipeline-kw');
+  try {
+    let keyword = '';
+    let isExpression = false;
+    if (kwInputMode === 'expr') {
+      keyword = document.getElementById('pipe-expression').value.trim();
+      isExpression = true;
+      if (!keyword) return setStatus('pipe-status', 'error', '请输入布尔表达式');
+    } else {
+      keyword = document.getElementById('pipe-keyword').value.trim();
+      if (!keyword) return setStatus('pipe-status', 'error', '请输入关键词');
+    }
+    const platform = document.getElementById('pipe-platform').value;
+    const simSteps = parseInt(document.getElementById('pipe-steps').value) || 5;
+    const useLlm = document.getElementById('pipe-llm').value === 'true';
+    const startTime = document.getElementById('pipe-start-time').value ? document.getElementById('pipe-start-time').value.replace('T', ' ') + (document.getElementById('pipe-start-time').value.length <= 16 ? ':00' : '') : null;
+    const endTime = document.getElementById('pipe-end-time').value ? document.getElementById('pipe-end-time').value.replace('T', ' ') + (document.getElementById('pipe-end-time').value.length <= 16 ? ':00' : '') : null;
+    const downloadSize = parseInt(document.getElementById('pipe-download-size').value) || 50;
+
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 运行中...';
+    setStatus('pipe-status', 'info', '⏳ 正在下载实时数据...');
+    hideResult('pipe-result');
+    document.getElementById('pipe-result-structured').style.display = 'none';
+    document.getElementById('pipe-steps-timeline').style.display = 'none';
+
+    const body = { keyword, platform, sim_steps: simSteps, use_llm_sim: useLlm, download_size: downloadSize, is_expression: isExpression };
+    if (startTime) body.start_time = startTime;
+    if (endTime) body.end_time = endTime;
+
+    const resp = await apiCall('/api/pipeline/run_keyword', body);
+    if (resp.status !== 'started') {
+      setStatus('pipe-status', 'error', '❌ ' + (resp.message || '启动失败'));
+      btn.disabled = false; btn.innerHTML = '🚀 启动流水线'; return;
+    }
+    const taskId = resp.task_id;
+    setStatus('pipe-status', 'info', '⏳ 流水线运行中 (ID: ' + taskId + ')...');
+
+    if (pipeKwPollTimer) clearInterval(pipeKwPollTimer);
+    pipeKwPollTimer = setInterval(async () => {
+      try {
+        const st = await apiCall('/api/pipeline/status/' + taskId, undefined, 'GET');
+        if (st.status === 'completed') {
+          clearInterval(pipeKwPollTimer); pipeKwPollTimer = null;
+          const steps = (st.result && st.result.steps) || [];
+          updateStepsTimeline(steps);
+          let summary = '✅ 流水线完成';
+          if (st.result && st.result.download_info) summary += ' · 下载 ' + st.result.download_info.downloaded + ' 条';
+          setStatus('pipe-status', 'success', summary);
+          renderStructuredResults(st.result);
+          showResult('pipe-result', st.result);
+          savePipelineHistory(keyword, st.result);
+          btn.disabled = false; btn.innerHTML = '🚀 启动流水线';
+        } else if (st.status === 'failed') {
+          clearInterval(pipeKwPollTimer); pipeKwPollTimer = null;
+          setStatus('pipe-status', 'error', '❌ ' + st.error + ' <button class="btn btn-sm" onclick="runPipelineKeyword()" style="margin-left:8px;">🔄 重试</button>');
+          btn.disabled = false; btn.innerHTML = '🚀 启动流水线';
+        } else if (st.progress) {
+          setStatus('pipe-status', 'info', st.progress);
+          if (st.partial_result) {
+            updateStepsTimeline(st.partial_result.steps || []);
+            renderStructuredResults(st.partial_result);
+          }
+        }
+      } catch (e) {}
+    }, 3000);
+  } catch (e) {
+    setStatus('pipe-status', 'error', '❌ ' + e.message);
+    btn.disabled = false; btn.innerHTML = '🚀 启动流水线';
+  }
+}
+
+// ===== JSON 模式 =====
+function loadPipelineExample() {
+  const example = {
+    "event_id": "fire_incident_001", "event_type": "突发事件",
+    "event_description": "某商场发生火灾，消防部门紧急救援",
+    "related_content": [
+      "@消防员小王 发布了现场救援视频", "@新闻记者李明 第一时间报道了事件经过",
+      "@商场管理员 发布了疏散通知", "user_12345 转发并评论",
+      "#火灾救援 话题下有大量讨论", "@安全专家张教授 分析了火灾原因"
+    ],
+    "timestamp": "2025-03-06 10:30:00", "location": "某市中心商场", "severity": "严重"
+  };
+  document.getElementById('pipe-input').value = JSON.stringify(example, null, 2);
+}
+
+let pipePollTimer = null;
+async function runPipeline() {
+  const btn = document.getElementById('btn-pipeline');
+  try {
+    let data = parseInput('pipe-input');
+    if (!data) return setStatus('pipe-status', 'error', '请输入事件数据');
+    if (Array.isArray(data)) data = data[0];
+    const platform = document.getElementById('pipe-platform').value;
+    const simSteps = parseInt(document.getElementById('pipe-steps').value) || 5;
+    const useLlm = document.getElementById('pipe-llm').value === 'true';
+    data._platform = platform; data._sim_steps = simSteps; data._use_llm_sim = useLlm;
+
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 运行中...';
+    setStatus('pipe-status', 'info', '⏳ 流水线启动中...');
+    hideResult('pipe-result');
+    document.getElementById('pipe-result-structured').style.display = 'none';
+    document.getElementById('pipe-steps-timeline').style.display = 'none';
+
+    const resp = await apiCall('/api/pipeline/run', data);
+    if (resp.status !== 'started') {
+      setStatus('pipe-status', 'error', '❌ ' + (resp.message || '启动失败'));
+      btn.disabled = false; btn.innerHTML = '🚀 启动流水线'; return;
+    }
+    const taskId = resp.task_id;
+    setStatus('pipe-status', 'info', '⏳ 流水线运行中 (ID: ' + taskId + ')...');
+
+    if (pipePollTimer) clearInterval(pipePollTimer);
+    pipePollTimer = setInterval(async () => {
+      try {
+        const st = await apiCall('/api/pipeline/status/' + taskId, undefined, 'GET');
+        if (st.status === 'completed') {
+          clearInterval(pipePollTimer); pipePollTimer = null;
+          const steps = (st.result && st.result.steps) || [];
+          updateStepsTimeline(steps);
+          setStatus('pipe-status', 'success', '✅ 流水线完成');
+          renderStructuredResults(st.result);
+          showResult('pipe-result', st.result);
+          savePipelineHistory('JSON事件', st.result);
+          btn.disabled = false; btn.innerHTML = '🚀 启动流水线';
+        } else if (st.status === 'failed') {
+          clearInterval(pipePollTimer); pipePollTimer = null;
+          setStatus('pipe-status', 'error', '❌ ' + st.error + ' <button class="btn btn-sm" onclick="runPipelineJson()" style="margin-left:8px;">🔄 重试</button>');
+          btn.disabled = false; btn.innerHTML = '🚀 启动流水线';
+        } else if (st.progress) {
+          setStatus('pipe-status', 'info', st.progress);
+          if (st.partial_result) {
+            updateStepsTimeline(st.partial_result.steps || []);
+            renderStructuredResults(st.partial_result);
+          }
+        }
+      } catch (e) {}
+    }, 3000);
+  } catch (e) {
+    setStatus('pipe-status', 'error', '❌ ' + e.message);
+    btn.disabled = false; btn.innerHTML = '🚀 启动流水线';
+  }
+}
+
+// ===== 历史记录 =====
+function savePipelineHistory(keyword, result) {
+  try {
+    const history = JSON.parse(localStorage.getItem('oasis_pipeline_history') || '[]');
+    const entry = {
+      id: Date.now(),
+      keyword: keyword,
+      time: new Date().toLocaleString('zh-CN'),
+      platform: result.platform || 'weibo',
+      status: result.status || 'unknown',
+      accounts: (result.extracted_entities && result.extracted_entities.accounts) ? result.extracted_entities.accounts.length : 0,
+      matched: result.es_matched_details ? Object.keys(result.es_matched_details).length : 0,
+      result: result
+    };
+    history.unshift(entry);
+    // 只保留最近10条（结果数据可能很大）
+    if (history.length > 10) history.length = 10;
+    localStorage.setItem('oasis_pipeline_history', JSON.stringify(history));
+    renderPipelineHistory();
+  } catch (e) {
+    console.warn('保存历史失败:', e);
+  }
+}
+
+function renderPipelineHistory() {
+  const container = document.getElementById('pipe-history');
+  if (!container) return;
+  try {
+    const history = JSON.parse(localStorage.getItem('oasis_pipeline_history') || '[]');
+    if (history.length === 0) { container.innerHTML = ''; return; }
+    let html = '<div style="margin-top:8px;"><div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">📜 历史记录 (' + history.length + '条) ▾</div>';
+    html += '<div style="display:none;">';
+    history.forEach((entry, idx) => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg-secondary);border-radius:6px;margin-bottom:4px;font-size:12px;">';
+      html += '<span>' + escHtml(entry.keyword) + ' · ' + (entry.platform === 'douyin' ? '抖音' : '微博') + ' · ' + entry.accounts + '账号/' + entry.matched + '匹配</span>';
+      html += '<span style="color:var(--text-secondary);">' + entry.time + ' ';
+      html += '<button class="btn btn-sm" style="font-size:11px;padding:1px 6px;" onclick="loadHistoryResult(' + idx + ')">查看</button> ';
+      html += '<button class="btn btn-sm" style="font-size:11px;padding:1px 6px;color:var(--error);" onclick="deleteHistoryEntry(' + idx + ')">删除</button>';
+      html += '</span></div>';
+    });
+    html += '</div></div>';
+    container.innerHTML = html;
+  } catch (e) { container.innerHTML = ''; }
+}
+
+function loadHistoryResult(idx) {
+  try {
+    const history = JSON.parse(localStorage.getItem('oasis_pipeline_history') || '[]');
+    const entry = history[idx];
+    if (entry && entry.result) {
+      const steps = (entry.result.steps) || [];
+      updateStepsTimeline(steps);
+      renderStructuredResults(entry.result);
+      showResult('pipe-result', entry.result);
+      setStatus('pipe-status', 'info', '📜 查看历史: ' + entry.keyword + ' (' + entry.time + ')');
+    }
+  } catch (e) { console.warn('加载历史失败:', e); }
+}
+
+function deleteHistoryEntry(idx) {
+  try {
+    const history = JSON.parse(localStorage.getItem('oasis_pipeline_history') || '[]');
+    history.splice(idx, 1);
+    localStorage.setItem('oasis_pipeline_history', JSON.stringify(history));
+    renderPipelineHistory();
+  } catch (e) {}
+}
+
+// 页面加载时渲染历史
+document.addEventListener('DOMContentLoaded', renderPipelineHistory);
+
+</script>
+</body>
+</html>
