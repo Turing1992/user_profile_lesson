@@ -122,6 +122,8 @@ class Drawing(object):
             self.logger.info("请求id-{}".format(info_response_id))
             self.logger.info(json.dumps(results, ensure_ascii=False, indent=2))
             for result in results:
+                if not isinstance(result, dict) or 'input_id' not in result:
+                    continue
                 results_lookup[str(result['input_id'])] = result
 
             for data in datas:
@@ -353,8 +355,9 @@ def main():
 
         # Worker 线程
         worker_count = task_config.get("worker_threads", 10)
+        _SENTINEL = object()  # 哨兵对象，通知 worker 退出
 
-        def make_worker(q, cfg, lg):
+        def make_worker(q, cfg, lg, sentinel):
             def worker():
                 dw = DrawingWrapper(cfg, lg)
                 datas = []
@@ -362,27 +365,47 @@ def main():
                 while True:
                     try:
                         data = q.get(timeout=1)
-                        double_key = data['url']
-                        if double_key in keys:
-                            continue
-                        else:
-                            keys.add(double_key)
-                        datas.append(data)
-                        q.task_done()
-                        if len(datas) >= 20:
+                    except queue.Empty:
+                        # 超时时如果有积攒的数据，先处理掉
+                        if datas:
                             dw.async_run(datas)
                             datas = []
                             keys = set()
-                    except queue.Empty:
                         continue
+
+                    # 收到哨兵信号，处理完剩余数据后退出
+                    if data is sentinel:
+                        q.task_done()
+                        if datas:
+                            lg.info("worker 退出前 flush 剩余 {} 条".format(len(datas)))
+                            dw.async_run(datas)
+                        return
+
+                    double_key = data['url']
+                    if double_key in keys:
+                        q.task_done()
+                        continue
+                    else:
+                        keys.add(double_key)
+                    datas.append(data)
+                    q.task_done()
+                    if len(datas) >= 20:
+                        dw.async_run(datas)
+                        datas = []
+                        keys = set()
             return worker
 
+        worker_threads = []
         for _ in range(worker_count):
             t = threading.Thread(
-                target=make_worker(task_queue, task_config, task_logger),
-                daemon=True,
+                target=make_worker(task_queue, task_config, task_logger, _SENTINEL),
+                daemon=False,  # 非 daemon，确保退出前能 flush
             )
             t.start()
+            worker_threads.append(t)
+
+        dispatcher["sentinel"] = _SENTINEL
+        dispatcher["worker_threads"] = worker_threads
 
         print("  [{}] {} 个 worker, 关键词: {}".format(
             task_name, worker_count,
@@ -405,19 +428,58 @@ def main():
     print("  namesrv: {}".format(config["mq_url"]))
     print("\n运行中... 按 Ctrl+C 停止")
 
-    # 优雅关闭
+    # 优雅关闭：drain 队列 + flush 剩余数据，重启不丢数据
+    stop_event = threading.Event()
+
     def signal_handler(signum, frame):
-        print("\n收到停止信号，正在关闭...")
-        os._exit(0)
+        print("\n收到停止信号，开始优雅关闭...")
+        stop_event.set()
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
+    # 等待停机信号
     try:
-        while True:
-            time.sleep(3600)
+        while not stop_event.is_set():
+            stop_event.wait(timeout=60)
     except (KeyboardInterrupt, SystemExit):
-        print("关闭中...")
+        stop_event.set()
+
+    # ── 1. 关闭 consumer（停止接收新消息） ──
+    print("[关闭] 停止 MQ consumer...")
+    def _shutdown_consumer():
+        consumer.shutdown()
+    shutdown_thread = threading.Thread(target=_shutdown_consumer)
+    shutdown_thread.start()
+    shutdown_thread.join(timeout=10)
+    print("[关闭] consumer 已停止")
+
+    # ── 2. 等待各任务队列排空 ──
+    DRAIN_SECONDS = 5
+    for dispatcher in task_dispatchers:
+        q = dispatcher["task_queue"]
+        name = dispatcher["name"]
+        consecutive_empty = 0
+        while consecutive_empty < DRAIN_SECONDS:
+            if q.empty():
+                consecutive_empty += 1
+            else:
+                consecutive_empty = 0
+            time.sleep(1)
+        print("[关闭] {} 队列已排空".format(name))
+
+    # ── 3. 发送哨兵通知 worker 退出（worker 会 flush 剩余数据） ──
+    for dispatcher in task_dispatchers:
+        sentinel = dispatcher["sentinel"]
+        q = dispatcher["task_queue"]
+        workers = dispatcher["worker_threads"]
+        for _ in workers:
+            q.put(sentinel)
+        for t in workers:
+            t.join(timeout=30)
+        print("[关闭] {} 所有 worker 已退出".format(dispatcher["name"]))
+
+    print("\n[关闭] 优雅关闭完成，所有数据已处理")
 
 
 if __name__ == "__main__":
