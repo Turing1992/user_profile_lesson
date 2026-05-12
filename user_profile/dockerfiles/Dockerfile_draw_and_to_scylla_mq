@@ -1,0 +1,37 @@
+# 构建命令（从 user_profile/ 目录执行）：
+# docker build -t <image_name> -f dockerfiles/Dockerfile_draw_and_to_scylla_mq .
+
+# 使用 CentOS 7 作为基础镜像
+FROM zhxgharbor.istarshine.com/dflow/centos7_rmqclient:3.6
+
+# 安装 tzdata 包以支持时区配置
+RUN yum install -y tzdata && \
+    # 设置时区为 Asia/Shanghai
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    # 验证时区配置
+    echo "当前时区:" && date +%Z
+
+RUN pip3.6 install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 安装 Python 依赖
+COPY requirements.txt /app/requirements.txt
+RUN pip3.6 install --no-cache-dir -r /app/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 安装 cassandra-driver（ScyllaDB 专用，不在共享 requirements.txt 中）
+RUN pip3.6 install --no-cache-dir cassandra-driver -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 设置工作目录
+WORKDIR /app
+
+COPY utils /app/utils
+COPY config /app/config
+COPY sport_data_get /app/sport_data_get
+COPY pipeline/draw_and_to_scylla_mq.py /app/
+COPY final_stanterd.xlsx /app/
+COPY ca.cer /app/
+
+# 创建日志目录
+RUN mkdir -p /app/logs
+
+CMD ["python3.6", "draw_and_to_scylla_mq.py"]

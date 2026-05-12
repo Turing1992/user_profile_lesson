@@ -1,0 +1,37 @@
+# Python 编译文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+*.tmp
+*.bak
+.DS_Store
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 二进制和数据文件
+*.bin
+*.faiss
+*.db
+
+# 测试输出
+test_output.txt
+
+# 环境变量（保留 .env.example）
+.env
+
+# 虚拟环境
+venv/
+.venv/
+env/

@@ -1,0 +1,74 @@
+{
+    "waimai": {
+        "name": "外卖员身份判断",
+        "bloom_key": "identity_bloom_key",
+        "matcher_keywords": ["外卖员","外卖日记","外卖行业","外卖小哥不容易","偷外卖的狗","外卖被偷","外卖小哥","外卖路上","外卖骑手","送外卖"],
+        "identity_func": "get_kind",
+        "content_mode": "content_only",
+        "filter_verified": false,
+        "consumer_group": "user_graph_uniq_user",
+        "worker_threads": 10,
+        "log_name": "waimai_pipeline",
+        "community_filter": {
+            "enabled": true,
+            "junk_categories": ["shop", "media", "ad", "food", "beauty", "realestate", "edu", "lawyer", "medical", "car"],
+            "filter_merchant_verified": true,
+            "keep_personal_verified": true,
+            "allowed_communities": ["外卖员", "网约车司机", "货车司机", "快递员"]
+        }
+    },
+    "kuaidi": {
+        "name": "快递员身份判断",
+        "bloom_key": "identity_bloom_key_ems",
+        "matcher_keywords": ["#快递"],
+        "identity_func": "get_kind2",
+        "content_mode": "concat_all",
+        "filter_verified": true,
+        "consumer_group": "user_graph_uniq_user_identity2",
+        "worker_threads": 10,
+        "log_name": "kuaidi_pipeline",
+        "community_filter": {
+            "enabled": true,
+            "junk_categories": ["shop", "media", "ad", "food", "beauty", "realestate", "edu", "lawyer", "medical", "car"],
+            "filter_merchant_verified": true,
+            "keep_personal_verified": true,
+            "allowed_communities": ["外卖员", "网约车司机", "货车司机", "快递员"]
+        }
+    },
+    "huoche": {
+        "name": "货车司机身份判断",
+        "bloom_key": "identity_bloom_key",
+        "matcher_keywords": ["开货车","小货车","货车司机","大货车","跑货车","长途货车","货车救援"],
+        "identity_func": "get_kind_huoche",
+        "content_mode": "concat_all",
+        "filter_verified": false,
+        "consumer_group": "user_graph_uniq_user_identity",
+        "worker_threads": 10,
+        "log_name": "huoche_pipeline",
+        "community_filter": {
+            "enabled": true,
+            "junk_categories": ["shop", "media", "ad", "food", "beauty", "realestate", "edu", "lawyer", "medical"],
+            "filter_merchant_verified": true,
+            "keep_personal_verified": true,
+            "allowed_communities": ["外卖员", "网约车司机", "货车司机", "快递员"]
+        }
+    },
+    "wangyueche": {
+        "name": "网约车司机身份判断",
+        "bloom_key": "identity_bloom_key",
+        "matcher_keywords": ["网约车","跑滴滴","滴滴车主","滴滴司机","跑网约车","网约车司机"],
+        "identity_func": "get_kind_wangyueche",
+        "content_mode": "concat_all",
+        "filter_verified": false,
+        "consumer_group": "user_graph_uniq_user_wangyueche",
+        "worker_threads": 10,
+        "log_name": "wangyueche_pipeline",
+        "community_filter": {
+            "enabled": true,
+            "junk_categories": ["shop", "media", "ad", "food", "beauty", "realestate", "edu", "lawyer", "medical"],
+            "filter_merchant_verified": true,
+            "keep_personal_verified": true,
+            "allowed_communities": ["外卖员", "网约车司机", "货车司机", "快递员"]
+        }
+    }
+}

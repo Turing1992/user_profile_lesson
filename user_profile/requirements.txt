@@ -1,0 +1,15 @@
+# 账号画像系统运行时依赖（Python 3.6 兼容）
+# 注意：rocketmq 已预装在基础镜像 centos7_rmqclient:3.6 中，不要从 pip 安装
+loguru
+requests
+ujson
+dirtyjson
+pytz
+pandas
+openpyxl
+xlrd
+opensearch-py
+redis
+mysql-connector-python
+openai
+actrie

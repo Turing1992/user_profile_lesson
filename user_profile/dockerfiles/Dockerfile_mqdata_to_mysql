@@ -1,0 +1,47 @@
+# 构建命令（从 user_profile/ 目录执行）：
+# docker build -t <image_name> -f dockerfiles/Dockerfile_mqdata_to_mysql .
+
+# 使用 CentOS 7 作为基础镜像
+FROM zhxgharbor.istarshine.com/dflow/centos7_rmqclient:3.6
+
+# 安装 glibc-common 以支持 locale 生成
+RUN yum install -y tzdata && \
+    # 设置时区为 Asia/Shanghai
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    # 验证时区配置
+    echo "当前时区:" && date +%Z
+
+RUN pip3.6 install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 设置环境变量以支持中文 UTF-8 和时区
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TZ=Asia/Shanghai
+
+# 安装 Python 依赖
+COPY requirements.txt /app/requirements.txt
+RUN pip3.6 install --no-cache-dir -r /app/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 安装此服务特有的依赖（覆盖 requirements.txt 中的版本或添加额外包）
+RUN pip3.6 install --no-cache-dir \
+    mysql-connector-python==8.0.6 \
+    thrift==0.13.0 \
+    elasticsearch \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 设置工作目录
+WORKDIR /app
+
+COPY utils /app/utils
+COPY config /app/config
+COPY sport_data_get /app/sport_data_get
+COPY pipeline/mqdata_to_mysql.py /app/
+COPY final_stanterd.xlsx /app/
+
+ENV env=beta
+
+# 创建日志目录
+RUN mkdir -p /app/logs
+
+CMD ["python3.6", "mqdata_to_mysql.py"]
