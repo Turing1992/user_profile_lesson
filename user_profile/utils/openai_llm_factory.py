@@ -5,18 +5,20 @@ import json
 from openai import OpenAI
 # from json_repair import repair_json
 
-# 构造 client
+# 构造 client（TokenHub qwen3.5-flash）
 client = OpenAI(
-    api_key="sk-EzfEPX79KDf9nZOS4QkhmZhrJZteVyfXrMAOvgHai26WVSNv",  # 混元 APIKey
-    base_url="https://api.hunyuan.cloud.tencent.com/v1",  # 混元 endpoint
+    api_key="sk-umee4PbV8mMTdbrh9YtmZowvQLlbizsoyu1id0rSM0VmIW4O",  # qwen3.5 APIKey
+    base_url="https://tokenhub.tencentmaas.com/v1",  # qwen3.5 endpoint
 )
+
+LLM_MODEL = "qwen3.5-flash"
 
 
 def get_user_infos(prompt,txt,log):
     while True:
         try:
             completion = client.chat.completions.create(
-                model="hunyuan-turbos-latest",
+                model=LLM_MODEL,
                 messages=[
                     {
                         "role": "user",
@@ -25,9 +27,6 @@ def get_user_infos(prompt,txt,log):
                 ],
                 temperature=0.01,
                 top_p=0.01,
-                extra_body={
-                    "enable_enhancement": False,  # <- 自定义参数
-                },
             )
             response_content = completion.choices[0].message.content
             break
@@ -54,7 +53,7 @@ def get_age_info(prompt,txt,log):
     while True:
         try:
             completion = client.chat.completions.create(
-                model="hunyuan-turbos-latest",
+                model=LLM_MODEL,
                 messages=[
                     {
                         "role": "user",
@@ -63,9 +62,6 @@ def get_age_info(prompt,txt,log):
                 ],
             temperature = 0.01,
             top_p = 0.01,
-                extra_body={
-                    "enable_enhancement": False,  # <- 自定义参数
-                },
             )
             response_content = completion.choices[0].message.content
             break

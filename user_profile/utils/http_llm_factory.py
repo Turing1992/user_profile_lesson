@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """LLM API 客户端工厂模块。
 
-封装了对腾讯混元大模型 API 的调用逻辑，提供观点抽取、用户信息分析、
+封装了对 qwen3.5-flash 大模型 API 的调用逻辑，提供观点抽取、用户信息分析、
 年龄推断、身份分类、性质判断、养成身份识别等多种 LLM 推理接口。
 所有接口均内置重试机制，确保在网络波动时的调用稳定性。
 """
@@ -13,11 +13,20 @@ import requests
 # import dirtyjson
 from actrie import Matcher
 
-url = "https://api.hunyuan.cloud.tencent.com/v1/chat/completions"
+# ===== 统一 LLM 配置：TokenHub qwen3.5-flash =====
+LLM_API_KEY = "sk-umee4PbV8mMTdbrh9YtmZowvQLlbizsoyu1id0rSM0VmIW4O"
+url = "https://tokenhub.tencentmaas.com/v1/chat/completions"
+LLM_MODEL = "qwen3.5-flash"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": f"Bearer sk-EzfEPX79KDf9nZOS4QkhmZhrJZteVyfXrMAOvgHai26WVSNv"
+    "Authorization": f"Bearer {LLM_API_KEY}"
 }
+
+# 身份(identity)抽取专用模型（与全局一致，保留常量供外部引用）
+IDENTITY_LLM_API_KEY = LLM_API_KEY
+IDENTITY_LLM_URL = url
+IDENTITY_LLM_MODEL = LLM_MODEL
+identity_headers = headers
 kind_md = Matcher()
 kind_md.load_from_collection(["政务媒体", "商业媒体", "企业官方", "社会组织", "自媒体", "其他", "中央", "省级", "地方"])
 kind_md2= Matcher()
@@ -28,7 +37,7 @@ kind_md2.load_from_collection(["学生", "家长", "老师", "企业员工", "�
 # 定义接口调用函数
 def  get_opinin_info(text):
     # type: (str) -> tuple
-    """调用混元大模型抽取帖文中的观点信息。
+    """调用 qwen3.5-flash 模型抽取帖文中的观点信息。
 
     对输入的帖文内容进行观点抽取，自动过滤广告和日常类内容。
     内置 3 次重试机制。
@@ -60,7 +69,7 @@ def  get_opinin_info(text):
     while times>0:
         try:
             data = {
-                "model": "hunyuan-turbos-latest",
+                "model": LLM_MODEL,
                 "messages": [
                     {
                         "role": "user",
@@ -69,7 +78,7 @@ def  get_opinin_info(text):
                 ],
                 "temperature": 0.01,
                 "top_p": 0.01,
-                "enable_enhancement": False
+                "stream": False
             }
             response = requests.post(url, headers=headers, data=json.dumps(data))
             if response.status_code == 200:
@@ -81,6 +90,10 @@ def  get_opinin_info(text):
                 except json.JSONDecodeError:
                     results = {"result":""}
                 return results, response_id,response_content
+            elif response.status_code == 429:
+                time.sleep(15)
+                times-=1
+                continue
             else:
                 response_id = ""
                 time.sleep(4)
@@ -96,9 +109,9 @@ def  get_opinin_info(text):
 
 def get_user_infos(prompt,txt,log):
     # type: (str, str, object) -> tuple
-    """调用混元大模型获取用户综合信息。
+    """调用 qwen3.5-flash 大模型获取用户综合信息（身份抽取）。
 
-    根据自定义 prompt 和帖文内容，调用 LLM 进行用户信息分析。
+    根据自定义 prompt 和帖文内容，调用 TokenHub qwen3.5-flash 进行用户信息分析。
     内置 3 次重试机制。
 
     Args:
@@ -114,7 +127,7 @@ def get_user_infos(prompt,txt,log):
     while times>0:
         try:
             data = {
-                "model": "hunyuan-turbos-latest",
+                "model": IDENTITY_LLM_MODEL,
                 "messages": [
                     {
                         "role": "user",
@@ -123,9 +136,9 @@ def get_user_infos(prompt,txt,log):
                 ],
                 "temperature": 0.01,
                 "top_p": 0.01,
-                "enable_enhancement": False
+                "stream": False
             }
-            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response = requests.post(IDENTITY_LLM_URL, headers=identity_headers, data=json.dumps(data))
             if response.status_code == 200:
                 response_json = response.json()
                 response_id = response_json["id"]
@@ -136,6 +149,11 @@ def get_user_infos(prompt,txt,log):
                     log.exception(f"结果解析失败{response_content}--{response_id}--{traceback.format_exc()}")
                     results = []
                 return results, response_id,response_content
+            elif response.status_code == 429:
+                log.warning(f"触发限流(429)，等待15秒后重试: {response.text}")
+                time.sleep(15)
+                times-=1
+                continue
             else:
                 response_id = ""
                 log.exception(f"Request failed with status code {response.status_code}")
@@ -153,7 +171,7 @@ def get_user_infos(prompt,txt,log):
 
 def get_age_info(prompt,txt,log):
     # type: (str, str, object) -> tuple
-    """调用混元大模型推断用户年龄信息。
+    """调用 qwen3.5-flash 模型推断用户年龄信息。
 
     根据自定义 prompt 和帖文内容，调用 LLM 推断用户的年龄范围。
     返回结果为年龄数值列表。内置 3 次重试机制。
@@ -172,7 +190,7 @@ def get_age_info(prompt,txt,log):
         try:
             response_id = 0
             data = {
-                "model": "hunyuan-turbos-latest",
+                "model": LLM_MODEL,
                 "messages": [
                     {
                         "role": "user",
@@ -181,7 +199,7 @@ def get_age_info(prompt,txt,log):
                 ],
                 "temperature": 0.01,
                 "top_p": 0.01,
-                "enable_enhancement": False
+                "stream": False
             }
 
             response = requests.post(url, headers=headers, data=json.dumps(data))
@@ -199,6 +217,11 @@ def get_age_info(prompt,txt,log):
                 else:
                     result_content = [int(item) for item in result_content[1:-1].split("-")]
                 return result_content, response_content, response_id
+            elif response.status_code == 429:
+                log.warning(f"触发限流(429)，等待15秒后重试: {response.text}")
+                time.sleep(15)
+                times-=1
+                continue
             else:
                 log.exception(f"Request failed with status code {response.status_code}")
                 log.exception(response.text)
@@ -214,7 +237,7 @@ def get_age_info(prompt,txt,log):
 
 def format_kind(prompt,txt,log):
     # type: (str, str, object) -> tuple
-    """调用混元大模型判断用户身份格式化分类。
+    """调用 qwen3.5-flash 模型判断用户身份格式化分类。
 
     根据自定义 prompt 和帖文内容，调用 LLM 进行身份分类，
     并通过 actrie 模式匹配提取标准化的身份标签。
@@ -231,7 +254,7 @@ def format_kind(prompt,txt,log):
     while True:
         try:
             data = {
-                "model": "hunyuan-turbos-latest",
+                "model": LLM_MODEL,
                 "messages": [
                     {
                         "role": "user",
@@ -240,7 +263,7 @@ def format_kind(prompt,txt,log):
                 ],
                 "temperature": 0.01,
                 "top_p": 0.01,
-                "enable_enhancement": False
+                "stream": False
             }
 
             response = requests.post(url, headers=headers, data=json.dumps(data))
@@ -249,6 +272,10 @@ def format_kind(prompt,txt,log):
                 response_json = response.json()
                 response_content = response_json["choices"][0]["message"]["content"]
                 break
+            elif response.status_code == 429:
+                log.warning(f"触发限流(429)，等待15秒后重试: {response.text}")
+                time.sleep(15)
+                continue
             else:
                 log.exception(f"Request failed with status code {response.status_code}")
                 log.exception(response.text)
@@ -266,7 +293,7 @@ def format_kind(prompt,txt,log):
 
 def xingzhi_kind(prompt,txt,log):
     # type: (str, str, object) -> tuple
-    """调用混元大模型判断账号性质分类。
+    """调用 qwen3.5-flash 模型判断账号性质分类。
 
     根据自定义 prompt 和帖文内容，调用 LLM 判断账号的媒体性质
     （如政务媒体、商业媒体、企业官方等），并通过 actrie 模式匹配
@@ -284,7 +311,7 @@ def xingzhi_kind(prompt,txt,log):
     while True:
         try:
             data = {
-                "model": "hunyuan-turbos-latest",
+                "model": LLM_MODEL,
                 "messages": [
                     {
                         "role": "user",
@@ -293,7 +320,7 @@ def xingzhi_kind(prompt,txt,log):
                 ],
                 "temperature": 0.01,
                 "top_p": 0.01,
-                "enable_enhancement": False
+                "stream": False
             }
             response = requests.post(url, headers=headers, data=json.dumps(data))
 
@@ -301,6 +328,10 @@ def xingzhi_kind(prompt,txt,log):
                 response_json = response.json()
                 response_content = response_json["choices"][0]["message"]["content"]
                 break
+            elif response.status_code == 429:
+                log.warning(f"触发限流(429)，等待15秒后重试: {response.text}")
+                time.sleep(15)
+                continue
             else:
                 log.exception(f"Request failed with status code {response.status_code}")
                 log.exception(response.text)
@@ -322,7 +353,7 @@ def xingzhi_kind(prompt,txt,log):
 
 def yangcheng_identity(prompt,txt,log):
     # type: (str, str, object) -> tuple
-    """调用混元大模型批量识别养成类账号身份。
+    """调用 qwen3.5-flash 模型批量识别养成类账号身份。
 
     根据自定义 prompt 和批量帖文 JSON 数据，调用 LLM 进行身份识别。
     会校验返回结果数量与输入数量是否匹配。无限重试直到成功。
@@ -339,7 +370,7 @@ def yangcheng_identity(prompt,txt,log):
     while True:
         try:
             data = {
-                "model": "hunyuan-turbos-latest",
+                "model": LLM_MODEL,
                 "messages": [
                     {
                         "role": "user",
@@ -348,7 +379,7 @@ def yangcheng_identity(prompt,txt,log):
                 ],
                 "temperature": 0.01,
                 "top_p": 0.01,
-                "enable_enhancement": False
+                "stream": False
             }
             response = requests.post(url, headers=headers, data=json.dumps(data))
 
@@ -363,6 +394,10 @@ def yangcheng_identity(prompt,txt,log):
                     print(response_json["id"])
                     return [],response_json["id"]
                 return result,response_json["id"]
+            elif response.status_code == 429:
+                log.warning(f"触发限流(429)，等待15秒后重试: {response.text}")
+                time.sleep(15)
+                continue
             else:
                 log.exception(f"Request failed with status code {response.status_code}")
                 log.exception(response.text)
