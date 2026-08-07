@@ -14,3 +14,14 @@ node_modules/
 embeddings_output.json
 identitys_o.txt
 description.txt
+
+# 任务产物：判定明细、断点、报表（数据不入库）
+new_employment_warning/output/
+user_profile/new_employment_warning/output/
+*.jsonl
+*.checkpoint.json
+
+# 环境变量与虚拟环境（切勿提交密钥）
+.env
+.venv/
+venv/

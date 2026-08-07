@@ -1,0 +1,41 @@
+# 预警账号身份识别每日批量任务（回写 media_*）
+# 构建命令（从 user_profile/ 目录执行）：
+# docker build -t <image_name> -f dockerfiles/Dockerfile_warning_daily_identity .
+#
+# 该任务是一次性作业（跑完即退出），建议用 K8s CronJob 每天调度一次，
+# 而不是 Deployment 常驻。调度示例见 new_employment_warning/README.md。
+
+FROM zhxgharbor.istarshine.com/dflow/centos7_rmqclient:3.6
+
+# 安装 tzdata 包以支持时区配置（预警数据按 +08:00 取当天）
+RUN yum install -y tzdata && \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    echo "当前时区:" && date +%Z
+
+# 关闭 stdout 缓冲：任务要跑十几分钟，缓冲会导致 kubectl logs 全程看不到进度，
+# 只在结束时一次性刷出，排查问题时很被动。
+ENV PYTHONUNBUFFERED=1
+
+RUN pip3.6 install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# 安装 Python 依赖
+COPY requirements.txt /app/requirements.txt
+RUN pip3.6 install --no-cache-dir -r /app/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+WORKDIR /app
+
+COPY utils /app/utils
+COPY config /app/config
+COPY new_employment_warning /app/new_employment_warning
+COPY final_stanterd.xlsx /app/
+COPY ca.cer /app/
+
+# 日志与结果输出目录
+RUN mkdir -p /app/logs /app/new_employment_warning/output
+
+# 默认跑昨天全量并回写 media_*。
+# 需要改日期或只试跑时，在 K8s 里覆盖 args，例如：
+#   ["-m","new_employment_warning.daily_identity_job","--date","2026-08-02","--dry-run"]
+ENTRYPOINT ["python3.6"]
+CMD ["-m", "new_employment_warning.daily_identity_job"]
