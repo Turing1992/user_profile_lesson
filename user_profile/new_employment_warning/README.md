@@ -136,37 +136,49 @@ python3 -m new_employment_warning.daily_identity_job \
 - **新账号**：按 `media_*` mapping 构造完整文档 `index`，
   字段名与类型对齐（`age` 为 integer、`followers_count` 为 long，空值不写）。
 
-### 部署（K8s CronJob）
+### 部署（单机 crontab）
+
+一次性批处理任务，跑完即退出，**不需要常驻进程、不需要 K8s**。
+找一台能访问 OpenSearch、阿里云百炼和内网 Redis 的机器，clone 下来挂 crontab 即可。
+
+前置：仓库里没有 `ca.cer` 和 `final_stanterd.xlsx`（被 .gitignore 排除），
+需要单独放到项目根目录，否则启动就会因为找不到映射表报错。
+
+**方式一：裸 Python（最简，要求 Python 3.6）**
 
 ```bash
-cd user_profile && bash build.sh
-# 镜像：zhxgharbor.istarshine.com/dflow/warning_daily_identity:0.0.1
+git clone http://172.16.0.108/data-process/user_graph.git /opt/user_graph
+cd /opt/user_graph
+pip3.6 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
+# 放好 ca.cer 与 final_stanterd.xlsx
+
+# crontab -e  每天 03:30 跑前一天
+30 3 * * * cd /opt/user_graph && python3.6 -u -m new_employment_warning.daily_identity_job >> /var/log/warn_identity.log 2>&1
 ```
 
-一次性作业，用 CronJob 调度，**不要**用 Deployment 常驻：
+`-u` 必须加：任务要跑十几分钟，不关缓冲的话中途看不到任何进度。
 
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: warning-daily-identity
-spec:
-  schedule: "30 3 * * *"          # 每天 03:30 跑前一天
-  concurrencyPolicy: Forbid       # 上一次没跑完就跳过，避免重复写
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
-  jobTemplate:
-    spec:
-      backoffLimit: 1
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-            - name: warning-daily-identity
-              image: zhxgharbor.istarshine.com/dflow/warning_daily_identity:0.0.1
-              # 默认 CMD 即跑昨天全量；要试跑加 --dry-run
-              # args: ["-m","new_employment_warning.daily_identity_job","--dry-run"]
+**方式二：Docker（环境隔离，不用在机器上装 Python 3.6）**
+
+```bash
+cd /opt/user_graph
+docker build -t warning_identity:0.0.2 -f dockerfiles/Dockerfile_warning_daily_identity .
+
+# crontab -e
+30 3 * * * docker run --rm -v /data/warn_output:/app/new_employment_warning/output warning_identity:0.0.2 >> /var/log/warn_identity.log 2>&1
 ```
+
+挂 volume 出来，判定明细和历史路的断点就留在宿主机，不随容器销毁。
+镜像里已设 `PYTHONUNBUFFERED=1`，日志实时输出。
+
+上线前先手动跑一次 `--dry-run` 确认网络与依赖都通：
+
+```bash
+python3 -u -m new_employment_warning.daily_identity_job --date 2026-08-02 \
+  --max-accounts 300 --max-judge 20 --dry-run
+```
+
+看到 `[1/5]` 到 `[5/5]` 五步走完就没问题。
 
 ### 实测数据（2026-08-02 全量，线上真实环境）
 
@@ -299,34 +311,39 @@ python3 -m new_employment_warning.backfill_identity_job \
 建议做法：用一次性 Job 跑，配合 `--max-judge-total` 分几批，
 每批跑完看一眼 `output/backfill/` 里的明细再继续。
 
-### K8s 一次性 Job
+### 后台长跑的推荐姿势
 
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: warning-backfill-2026
-spec:
-  backoffLimit: 0            # 失败不自动重试，避免重复写；断点续跑靠手动重建
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: backfill
-          image: zhxgharbor.istarshine.com/dflow/warning_daily_identity:0.0.2
-          args:
-            - "-m"
-            - "new_employment_warning.backfill_identity_job"
-            - "--index=artificial_warning_push_2026"
-            - "--start-date=2026-01-01"
-            - "--end-date=2026-12-31"
-            - "--window-hours=6"
-            - "--workers=24"
+回溯要跑几十小时，用 `nohup` 或 `screen`/`tmux` 挂后台，别挂在 ssh 会话里：
+
+```bash
+cd /opt/user_graph
+nohup python3.6 -u -m new_employment_warning.backfill_identity_job \
+  --index artificial_warning_push_2026 \
+  --start-date 2026-01-01 --end-date 2026-12-31 \
+  --window-hours 6 --workers 24 \
+  >> /var/log/warn_backfill_2026.log 2>&1 &
+
+# 看进度
+tail -f /var/log/warn_backfill_2026.log
 ```
 
-断点文件在容器内 `output/backfill/`，Pod 销毁即丢。**要跨 Pod 续跑必须挂 PVC**，
-否则重建 Job 会从头再跑一遍（账号级去重仍然生效，靠 Redis 布隆兜底，
-所以不会重复消耗模型调用，只会重复扫描 ES）。
+断点文件默认在 `new_employment_warning/output/backfill/`。
+中断后原样重跑会自动跳过已完成日期，所以随时 `kill` 都安全。
+
+用 Docker 跑的话记得挂 volume，否则断点随容器销毁：
+
+```bash
+docker run -d --name warn_backfill \
+  -v /data/warn_output:/app/new_employment_warning/output \
+  warning_identity:0.0.2 \
+  -m new_employment_warning.backfill_identity_job \
+  --index=artificial_warning_push_2026 \
+  --start-date=2026-01-01 --end-date=2026-12-31 \
+  --window-hours=6 --workers=24
+```
+
+即使断点丢了也不会重复烧模型调用（账号级去重存在 Redis 布隆里），
+只会重复扫描 ES，浪费时间不浪费钱。
 
 ---
 
