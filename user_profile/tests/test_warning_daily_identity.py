@@ -886,7 +886,48 @@ class TestBackfillJob(object):
         """起止同一天时只产出一天。"""
         from new_employment_warning.backfill_identity_job import iter_dates_desc
 
-        assert iter_dates_desc("2026-07-28", "2026-07-28") == ["2026-07-28"]
+        assert iter_dates_desc("2026-07-28", "2026-07-28",
+                               clamp_to_yesterday=False) == ["2026-07-28"]
+
+    def test_end_date_clamped_to_yesterday(self):
+        # type: () -> None
+        """结束日期截断到昨天，不空跑未来日期。
+
+        真实踩坑：`--end-date 2026-12-31` 跑全年时，从 12-31 倒序空转了
+        近 150 天才走到有数据的日期。未来数据交给每日增量任务处理。
+        """
+        import datetime
+
+        from new_employment_warning.backfill_identity_job import iter_dates_desc
+
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        future = (datetime.date.today() + datetime.timedelta(days=200))
+        start = (yesterday - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+
+        dates = iter_dates_desc(start, future.strftime("%Y-%m-%d"))
+        assert dates[0] == yesterday.strftime("%Y-%m-%d")
+        assert len(dates) == 4
+
+    def test_all_future_range_returns_empty(self):
+        # type: () -> None
+        """区间完全在未来时返回空列表，调用方据此直接结束。"""
+        import datetime
+
+        from new_employment_warning.backfill_identity_job import iter_dates_desc
+
+        start = (datetime.date.today() + datetime.timedelta(days=10))
+        end = (datetime.date.today() + datetime.timedelta(days=20))
+        assert iter_dates_desc(start.strftime("%Y-%m-%d"),
+                               end.strftime("%Y-%m-%d")) == []
+
+    def test_clamp_can_be_disabled(self):
+        # type: () -> None
+        """显式关闭截断时保留原区间（供测试与特殊场景使用）。"""
+        dates = __import__(
+            "new_employment_warning.backfill_identity_job",
+            fromlist=["iter_dates_desc"],
+        ).iter_dates_desc("2030-01-01", "2030-01-03", clamp_to_yesterday=False)
+        assert dates == ["2030-01-03", "2030-01-02", "2030-01-01"]
 
     def test_dedup_marks_and_skips(self):
         # type: () -> None

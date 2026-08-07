@@ -134,21 +134,32 @@ class AccountDedup(object):
                 pass
 
 
-def iter_dates_desc(start_date, end_date):
-    # type: (str, str) -> list
+def iter_dates_desc(start_date, end_date, clamp_to_yesterday=True):
+    # type: (str, str, bool) -> list
     """生成从新到旧的日期列表。
 
     近期数据画像价值更高，倒序遍历让中途停止时已完成的部分最有价值。
 
+    结束日期默认截断到昨天：写 ``--end-date 2026-12-31`` 跑全年时，
+    今天之后的日期在预警索引里没有任何数据，逐天空跑纯属浪费
+    （实测跑 2026 全年会先空转近 150 天）。当天数据交给每日增量任务处理，
+    回溯不重复覆盖。
+
     Args:
         start_date: 起始日期 ``yyyy-MM-dd``（较早）。
         end_date: 结束日期 ``yyyy-MM-dd``（较晚）。
+        clamp_to_yesterday: 是否把结束日期截断到昨天。
 
     Returns:
-        list: 日期字符串列表，从 end_date 递减到 start_date。
+        list: 日期字符串列表，从 end_date 递减到 start_date；
+        区间完全落在未来时返回空列表。
     """
     start = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+    if clamp_to_yesterday:
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        if end > yesterday:
+            end = yesterday
     dates = []
     cursor = end
     while cursor >= start:
@@ -380,8 +391,16 @@ def run(source_index=None, start_date=None, end_date=None, workers=None,
     dates = iter_dates_desc(start_date, end_date)
     pending = [d for d in dates if d not in done]
     print("历史回溯 {}".format(source_index))
+    if not dates:
+        print("  日期区间 {} ~ {} 完全落在未来（今天之前无数据），无事可做".format(
+            start_date, end_date))
+        return {"source_index": source_index, "days_total": 0, "days_done": 0,
+                "totals": {}, "by_identity": {}}
+    if dates[0] != end_date:
+        print("  注意       : 结束日期已从 {} 截断到 {}（今天之后无数据）".format(
+            end_date, dates[0]))
     print("  日期区间   : {} ~ {}（从新到旧，共 {} 天）".format(
-        start_date, end_date, len(dates)))
+        start_date, dates[0], len(dates)))
     print("  断点已完成 : {} 天，本次待跑 {} 天".format(len(done), len(pending)))
     print("  账号去重   : {}".format(dedup.backend))
     print("  跳过已有身份: {}".format(bool(skip_existing_identity)))
