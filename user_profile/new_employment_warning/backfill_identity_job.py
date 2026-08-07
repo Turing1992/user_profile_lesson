@@ -165,9 +165,19 @@ def _load_checkpoint(path, meta):
     with open(path, "r", encoding="utf-8") as handle:
         state = json.load(handle)
     if state.get("meta") != meta:
+        old = state.get("meta") or {}
+        diff = sorted(
+            key for key in set(old) | set(meta) if old.get(key) != meta.get(key)
+        )
         raise ValueError(
-            "断点参数与本次运行不一致，请换 --checkpoint 路径或删除旧断点：\n"
-            "  旧: {}\n  新: {}".format(state.get("meta"), meta))
+            "断点参数与本次运行不一致，拒绝复用（避免把两次不同口径的结果混在一起）。\n"
+            "  不一致的参数: {}\n"
+            "  旧: {}\n"
+            "  新: {}\n"
+            "解决办法（二选一）：\n"
+            "  1) 删掉旧断点重新开始:  rm -f {}\n"
+            "  2) 换一个断点文件:      --checkpoint <新路径>".format(
+                ", ".join(diff) or "(未知)", old, meta, path))
     return state
 
 
@@ -337,8 +347,17 @@ def run(source_index=None, start_date=None, end_date=None, workers=None,
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     if checkpoint_path is None:
+        # 断点文件名带上参数指纹：不同日期区间、试跑与正式跑各用各的断点，
+        # 避免"试跑完就没法正式跑"这种互相挡道的情况。
+        fingerprint = "{}_{}_{}".format(
+            source_index,
+            (start_date or "").replace("-", ""),
+            (end_date or "").replace("-", ""),
+        )
+        if dry_run:
+            fingerprint += "_dryrun"
         checkpoint_path = os.path.join(
-            output_dir, "backfill_{}.checkpoint.json".format(source_index))
+            output_dir, "backfill_{}.checkpoint.json".format(fingerprint))
 
     meta = {
         "source_index": source_index,

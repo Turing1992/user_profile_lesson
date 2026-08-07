@@ -961,6 +961,40 @@ class TestBackfillJob(object):
         with pytest.raises(ValueError):
             _load_checkpoint(path, {"source_index": "b"})
 
+    def test_checkpoint_error_points_out_the_diff(self, tmp_path):
+        # type: (object) -> None
+        """报错要指出哪个参数不一致并给出可执行的解决办法。
+
+        真实踩坑：试跑（dry_run=True，7月27~30）留下的断点挡住了正式跑
+        （dry_run=False，全年），报错只堆了两个 dict，得自己逐字段比对。
+        """
+        from new_employment_warning.backfill_identity_job import (
+            _load_checkpoint,
+            _save_checkpoint,
+        )
+
+        path = str(tmp_path / "ck.json")
+        _save_checkpoint(path, {
+            "meta": {"start_date": "2026-07-27", "dry_run": True},
+            "done_dates": [],
+        })
+        with pytest.raises(ValueError) as excinfo:
+            _load_checkpoint(path, {"start_date": "2026-01-01", "dry_run": False})
+        message = str(excinfo.value)
+        assert "start_date" in message and "dry_run" in message
+        assert "rm -f" in message and path in message
+
+    def test_dryrun_and_real_use_separate_checkpoints(self):
+        # type: () -> None
+        """默认断点文件名带参数指纹：试跑与正式跑、不同日期区间互不挡道。"""
+        import inspect
+
+        from new_employment_warning import backfill_identity_job
+
+        source = inspect.getsource(backfill_identity_job.run)
+        assert "fingerprint" in source, "默认断点路径应包含参数指纹"
+        assert "_dryrun" in source, "dry_run 应使用独立的断点文件"
+
     def test_collect_accounts_skip_callback_signature(self):
         # type: () -> None
         """collect_accounts 必须支持 skip_account 与 window_hours，
