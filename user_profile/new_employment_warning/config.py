@@ -64,6 +64,9 @@ JOB_CONFIG = {
     "judge_workers": 16,         # 模型判断并发线程数
     "max_accounts": None,        # 账号数上限；None=当天全量
     "max_judge": None,           # 模型调用次数上限；None=不限
+    # 产物保留天数：每天会生成一份明细 xlsx + jsonl，长期跑会堆几百个文件。
+    # 每次运行结束自动清理超期的增量路产物；回溯目录与断点文件不受影响。
+    "output_keep_days": 1,
 }
 
 # ===== 历史回溯任务（backfill_identity_job）=====

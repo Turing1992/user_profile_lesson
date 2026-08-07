@@ -268,9 +268,12 @@ def process_day(client, date, source_index, dedup, identity_map,
                 for identity in result["standard_identities"]:
                     identity_counter[identity] += 1
 
-    # 所有被判断过的账号都标记为已处理，无论命中与否，避免下次重复判断。
-    for account in strict_passed:
-        dedup.mark(account["dedup_key"])
+    # 标记已处理，避免下次重复判断（命中与否都标记，未命中的重判也是浪费）。
+    # 但 dry_run 只是试跑、没有真正写库，绝不能标记：否则正式运行会把这些账号
+    # 当成"已处理"跳过，导致它们永远不会被写入 media_*。
+    if not dry_run:
+        for account in strict_passed:
+            dedup.mark(account["dedup_key"])
 
     write_report = write_back(
         hit_accounts, identity_map=identity_map, client=client, dry_run=dry_run)

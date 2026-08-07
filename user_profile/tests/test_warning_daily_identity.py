@@ -776,6 +776,96 @@ class TestIdentityGates(object):
         assert not missing, "以下标准身份缺少门槛配置: {}".format(missing)
 
 
+class TestCleanupOldOutputs(object):
+    """产物自动清理测试。
+
+    每天一份 xlsx + jsonl，长期跑会堆几百个文件，所以每次运行结束自动清理。
+    重点是**绝不能误删断点文件和回溯产物**——断点丢了会导致重复扫描几十小时。
+    """
+
+    def _make(self, directory, name, days_ago):
+        # type: (object, str, float) -> str
+        """在目录里造一个指定修改时间的文件。"""
+        import os
+        import time
+
+        path = str(directory / name)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("x")
+        stamp = time.time() - days_ago * 86400
+        os.utime(path, (stamp, stamp))
+        return path
+
+    def test_removes_expired_keeps_fresh(self, tmp_path):
+        # type: (object) -> None
+        """超过保留期的删掉，当天的留下。"""
+        import os
+
+        from new_employment_warning.daily_identity_job import cleanup_old_outputs
+
+        self._make(tmp_path, "daily_identity_20260801_010101.xlsx", 5)
+        self._make(tmp_path, "daily_identity_20260801_010101.jsonl", 5)
+        fresh = self._make(tmp_path, "daily_identity_20260805_020202.xlsx", 0)
+
+        result = cleanup_old_outputs(keep_days=1, output_dir=str(tmp_path))
+        assert len(result["removed"]) == 2
+        assert result["kept"] == 1
+        assert os.path.exists(fresh)
+
+    def test_never_touches_checkpoint_or_backfill(self, tmp_path):
+        # type: (object) -> None
+        """断点文件、回溯产物、其它无关文件一律不动，即使已过期。"""
+        import os
+
+        from new_employment_warning.daily_identity_job import cleanup_old_outputs
+
+        protected = [
+            self._make(tmp_path, "backfill_artificial_warning_push_2026.checkpoint.json", 30),
+            self._make(tmp_path, "backfill_20260101.jsonl", 30),
+            self._make(tmp_path, "hits_artificial_warning_push_2026.jsonl", 30),
+            self._make(tmp_path, "已确认写入账号_完整文档.json", 30),
+        ]
+        backfill_dir = tmp_path / "backfill"
+        backfill_dir.mkdir()
+        nested = self._make(backfill_dir, "daily_identity_20260101_000000.jsonl", 30)
+
+        result = cleanup_old_outputs(keep_days=1, output_dir=str(tmp_path))
+        assert result["removed"] == []
+        for path in protected:
+            assert os.path.exists(path), "不该删 {}".format(path)
+        # 不递归子目录，回溯目录里的同名文件也不受影响
+        assert os.path.exists(nested)
+
+    @pytest.mark.parametrize("keep_days", [0, -1, None])
+    def test_disabled_or_missing_dir(self, tmp_path, keep_days):
+        # type: (object, int) -> None
+        """keep_days<=0 时不清理；目录不存在时安全返回。"""
+        import os
+
+        from new_employment_warning.daily_identity_job import cleanup_old_outputs
+
+        old = self._make(tmp_path, "daily_identity_20260101_000000.xlsx", 99)
+        if keep_days is not None:
+            result = cleanup_old_outputs(keep_days=keep_days, output_dir=str(tmp_path))
+            assert result["removed"] == []
+            assert os.path.exists(old)
+
+        missing = cleanup_old_outputs(keep_days=1, output_dir=str(tmp_path / "nope"))
+        assert missing["removed"] == []
+
+    def test_keep_days_boundary(self, tmp_path):
+        # type: (object) -> None
+        """保留 3 天时，2 天前的留、4 天前的删。"""
+        from new_employment_warning.daily_identity_job import cleanup_old_outputs
+
+        self._make(tmp_path, "daily_identity_a.xlsx", 2)
+        self._make(tmp_path, "daily_identity_b.xlsx", 4)
+
+        result = cleanup_old_outputs(keep_days=3, output_dir=str(tmp_path))
+        assert result["removed"] == ["daily_identity_b.xlsx"]
+        assert result["kept"] == 1
+
+
 class TestBackfillJob(object):
     """历史回溯任务测试。
 
@@ -821,6 +911,25 @@ class TestBackfillJob(object):
         dedup = AccountDedup(enabled=False)
         dedup.mark("抖音|123")
         assert dedup.seen("抖音|123") is False
+
+    def test_dry_run_must_not_mark_accounts(self):
+        # type: () -> None
+        """dry_run 不能把账号标记为已处理。
+
+        试跑没有真正写库，如果标记了，正式运行会把这些账号当成"已处理"
+        跳过，导致它们永远不会被写入 media_*。这里直接检查 process_day
+        的源码，确保 mark 调用被 dry_run 守卫包着。
+        """
+        import inspect
+
+        from new_employment_warning import backfill_identity_job
+
+        source = inspect.getsource(backfill_identity_job.process_day)
+        assert "dedup.mark(" in source, "process_day 里应有 dedup.mark 调用"
+        # mark 必须位于 "if not dry_run:" 之后，缩进比守卫更深
+        guard_index = source.index("if not dry_run:")
+        mark_index = source.index("dedup.mark(")
+        assert guard_index < mark_index, "dedup.mark 必须在 if not dry_run 守卫内"
 
     def test_checkpoint_roundtrip(self, tmp_path):
         # type: (object) -> None

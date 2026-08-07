@@ -104,6 +104,56 @@ def yesterday():
     return (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
 
+# 只清理增量路自己生成的明细文件，靠前缀识别，避免误删其它东西。
+_CLEANUP_PREFIX = "daily_identity_"
+_CLEANUP_SUFFIXES = (".xlsx", ".jsonl")
+
+
+def cleanup_old_outputs(keep_days=None, output_dir=None, now=None):
+    # type: (int, str, float) -> dict
+    """删除超过保留期的增量路产物。
+
+    每天一份 xlsx + jsonl，长期跑会堆几百个文件。这里在每次运行结束时清理。
+
+    只删除形如 ``daily_identity_*.xlsx`` / ``daily_identity_*.jsonl`` 的文件，
+    **不递归子目录**，所以回溯产物（``backfill/``）和断点文件绝不会被误删。
+
+    Args:
+        keep_days: 保留天数，<=0 表示不清理。默认取 ``JOB_CONFIG.output_keep_days``。
+        output_dir: 产物目录，默认 ``OUTPUT_DIR``。
+        now: 当前时间戳，仅用于测试注入。
+
+    Returns:
+        dict: ``{"removed": [文件名...], "kept": 保留数量, "failed": [(文件名, 原因)]}``。
+    """
+    if keep_days is None:
+        keep_days = JOB_CONFIG.get("output_keep_days", 1)
+    output_dir = output_dir or OUTPUT_DIR
+    result = {"removed": [], "kept": 0, "failed": []}
+    if not keep_days or keep_days <= 0 or not os.path.isdir(output_dir):
+        return result
+
+    now = time.time() if now is None else now
+    deadline = now - keep_days * 86400
+    for name in sorted(os.listdir(output_dir)):
+        path = os.path.join(output_dir, name)
+        if not os.path.isfile(path):
+            continue
+        if not name.startswith(_CLEANUP_PREFIX):
+            continue
+        if not name.endswith(_CLEANUP_SUFFIXES):
+            continue
+        try:
+            if os.path.getmtime(path) < deadline:
+                os.remove(path)
+                result["removed"].append(name)
+            else:
+                result["kept"] += 1
+        except OSError as exc:
+            result["failed"].append((name, str(exc)))
+    return result
+
+
 def build_candidate_query(start_time, end_time):
     # type: (str, str) -> dict
     """构造候选帖查询：时间窗 + 有账号 id + 命中任一身份别名。
@@ -741,8 +791,8 @@ def export_report(rows, stats, group_counter, output_path, reject_rows=None):
 
 def run(date=None, start_time=None, end_time=None, max_accounts=None,
         max_judge=None, workers=None, dry_run=False, output_path=None,
-        source_index=None):
-    # type: (str, str, str, int, int, int, bool, str, str) -> dict
+        source_index=None, keep_days=None):
+    # type: (str, str, str, int, int, int, bool, str, str, int) -> dict
     """执行一天的预警账号身份识别与画像回写。
 
     Args:
@@ -755,6 +805,7 @@ def run(date=None, start_time=None, end_time=None, max_accounts=None,
         dry_run: 只判断不写库。
         output_path: 报告输出路径（xlsx）。
         source_index: 源索引，默认取 ``config.SOURCE_INDEX``。
+        keep_days: 产物保留天数，<=0 不清理。默认取 ``JOB_CONFIG.output_keep_days``。
 
     Returns:
         dict: 运行统计。
@@ -893,6 +944,18 @@ def run(date=None, start_time=None, end_time=None, max_accounts=None,
     stats["excel_path"] = output_path
     export_report(rows, stats, group_counter, output_path, reject_rows)
 
+    # 清理超期产物（在生成本次报告之后，所以本次的文件一定会保留）
+    cleanup = cleanup_old_outputs(keep_days=keep_days)
+    stats["output_cleanup"] = {
+        "keep_days": keep_days if keep_days is not None
+        else JOB_CONFIG.get("output_keep_days", 1),
+        "removed": len(cleanup["removed"]),
+        "kept": cleanup["kept"],
+    }
+    if cleanup["removed"]:
+        print("      已清理过期产物 {} 个（保留 {} 天）".format(
+            len(cleanup["removed"]), stats["output_cleanup"]["keep_days"]))
+
     print("\n===== 运行统计 =====")
     print(json.dumps(stats, ensure_ascii=False, indent=2))
     print("\nJSONL: {}\nExcel: {}".format(jsonl_path, output_path))
@@ -917,11 +980,14 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="只判断不写库，用于验证")
     parser.add_argument("--output", default=None, help="报告输出路径（xlsx）")
+    parser.add_argument("--keep-days", type=int, default=None,
+                        help="产物保留天数，默认 1（只留当天）；设 0 表示不清理")
     args = parser.parse_args()
     run(
         date=args.date, start_time=args.start_time, end_time=args.end_time,
         max_accounts=args.max_accounts, max_judge=args.max_judge,
         workers=args.workers, dry_run=args.dry_run, output_path=args.output,
+        keep_days=args.keep_days,
     )
 
 

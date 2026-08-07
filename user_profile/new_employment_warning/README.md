@@ -153,10 +153,33 @@ pip3.6 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 # 放好 ca.cer 与 final_stanterd.xlsx
 
 # crontab -e  每天 03:30 跑前一天
-30 3 * * * cd /opt/user_graph && python3.6 -u -m new_employment_warning.daily_identity_job >> /var/log/warn_identity.log 2>&1
+30 3 * * * cd /opt/user_graph && python3.6 -u -m new_employment_warning.daily_identity_job > /var/log/warn_identity.log 2>&1
 ```
 
-`-u` 必须加：任务要跑十几分钟，不关缓冲的话中途看不到任何进度。
+两个细节：
+
+- `-u` 必须加，任务要跑十几分钟，不关缓冲的话中途看不到任何进度；
+- 用 `>` 而不是 `>>`，每天覆盖，日志不会无限增长。想保留上一次的话前面加
+  `mv -f /var/log/warn_identity.log /var/log/warn_identity.log.1 2>/dev/null;`。
+
+conda 环境下 crontab 没有 PATH，python 要写绝对路径，例如
+`/root/anaconda3/envs/xxx/bin/python`。
+
+### 产物自动清理
+
+每天会生成一份明细 xlsx + jsonl，长期跑会堆几百个文件，所以每次运行结束会自动
+清理超期产物，默认**只保留当天**（`JOB_CONFIG.output_keep_days = 1`）：
+
+```bash
+--keep-days 1     # 默认，只留当天
+--keep-days 7     # 留一周
+--keep-days 0     # 关闭清理
+```
+
+清理范围被刻意限制得很窄，只删**当前目录下**前缀为 `daily_identity_` 且后缀为
+`.xlsx` / `.jsonl` 的文件，不递归子目录。因此回溯产物（`output/backfill/`）
+和断点文件 `*.checkpoint.json` 绝不会被误删 —— 断点丢了会导致回溯从头重扫几十小时，
+这个风险远大于省下的磁盘空间。
 
 **方式二：Docker（环境隔离，不用在机器上装 Python 3.6）**
 
