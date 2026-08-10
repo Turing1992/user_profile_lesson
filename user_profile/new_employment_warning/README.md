@@ -165,6 +165,32 @@ pip3.6 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 conda 环境下 crontab 没有 PATH，python 要写绝对路径，例如
 `/root/anaconda3/envs/xxx/bin/python`。
 
+### 两个必踩的坑
+
+**必须在项目根目录执行。** `python -m` 靠当前工作目录找包，在
+`new_employment_warning/` 子目录里执行会报
+`ModuleNotFoundError: No module named 'new_employment_warning'`。
+所以命令前面的 `cd /opt/user_graph &&` 不能省。
+
+想彻底摆脱对当前目录的依赖，用 `PYTHONPATH` 代替：
+
+```bash
+PYTHONPATH=/opt/user_graph /root/anaconda3/envs/xxx/bin/python -u \
+  -m new_employment_warning.daily_identity_job
+```
+
+产物路径是按代码文件位置算的（`new_employment_warning/output/`），
+与当前目录无关，两种写法产物都落在同一处。
+
+**日志里的 actrie 噪声。** `actrie` 加载词表时会往 stdout 打
+`seg_blen: 10, region_size: 8`，无害但很吵，而且让日志带上非文本字符。
+看日志时要加 `-a`，否则 grep 会当二进制文件拒绝匹配：
+
+```bash
+grep -av "seg_blen" /var/log/warn_identity.log      # 看干净的日志
+grep -a "^\[" /var/log/warn_backfill_2025.log | tail -1   # 看回溯跑到哪天
+```
+
 ### 产物自动清理
 
 每天会生成一份明细 xlsx + jsonl，长期跑会堆几百个文件，所以每次运行结束会自动
@@ -339,16 +365,23 @@ python3 -m new_employment_warning.backfill_identity_job \
 回溯要跑几十小时，用 `nohup` 或 `screen`/`tmux` 挂后台，别挂在 ssh 会话里：
 
 ```bash
-cd /opt/user_graph
+cd /opt/user_graph          # 必须在项目根目录，python -m 靠 cwd 找包
 nohup python3.6 -u -m new_employment_warning.backfill_identity_job \
   --index artificial_warning_push_2026 \
   --start-date 2026-01-01 --end-date 2026-12-31 \
   --window-hours 6 --workers 24 \
   >> /var/log/warn_backfill_2026.log 2>&1 &
 
-# 看进度
-tail -f /var/log/warn_backfill_2026.log
+# 看跑到哪天了
+grep -a "^\[" /var/log/warn_backfill_2026.log | tail -1
+
+# 跑完看全年汇总
+grep -a -A45 "回溯汇总" /var/log/warn_backfill_2026.log
 ```
+
+按年份逐个跑，换 `--index` 和日期即可。**跨年去重会自动生效**：
+2026 处理过的账号记在 Redis 布隆里，跑 2025 时遇到同一账号直接跳过，
+所以后跑的年份实际调用量会明显低于其账号总数。
 
 断点文件默认在 `new_employment_warning/output/backfill/`。
 中断后原样重跑会自动跳过已完成日期，所以随时 `kill` 都安全。
