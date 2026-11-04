@@ -1,0 +1,21 @@
+# 发布者性质【人工名单】：命中后跳过媒体矩阵/高频/规则/模型，直接按这里的性质判定。
+#
+# 格式：domain <TAB> uid <TAB> kind <TAB> 备注（备注会写进判定理由，下游 redis 的 "2" 字段能看到）
+#   · 以 # 开头的行和空行会被忽略
+#   · domain 必须是 normalize_domain() 归一后的注册域，与 CH 表 source_attr_accounts.domain 一致
+#       （如 qq.com / weibo.com / iesdouyin.com / kuaishou.com / toutiao.com / baidu.com），
+#       不是 weixin.qq.com / mp.weixin.qq.com
+#   · kind 取值：中央 省级 地方 政务媒体 商业媒体 企业官方 社会组织 其他 自媒体
+#   · 分隔符必须是 TAB，不是空格
+#
+# 生效方式：文件随镜像发布（Dockerfile COPY config），进程启动时读取一次，
+#           改完要重新构建镜像/重启进程。临时指定别的文件：SA_MANUAL_OVERRIDE_FILE=/path/to/file.tsv
+# 改完后同步 CH 与下游 redis：新消息到达时会自动写 CH；已存在的旧结论需手动更新一次。
+
+# 上海市场监管（上海市市场监督管理局）：媒体矩阵误标 mediaNature=商媒，2026-11-04 人工更正
+baidu.com	aLsyhBcAmy6gQYL8wBPWUg	政务媒体	上海市市场监督管理局官方账号，媒体矩阵误标商媒
+iesdouyin.com	111330387501	政务媒体	上海市市场监督管理局官方账号，媒体矩阵误标商媒
+kuaishou.com	2029551947	政务媒体	上海市市场监督管理局官方账号，媒体矩阵误标商媒
+qq.com	shscjgj	政务媒体	上海市市场监督管理局官方账号，媒体矩阵误标商媒
+toutiao.com	5855187792	政务媒体	上海市市场监督管理局官方账号，媒体矩阵误标商媒
+weibo.com	2482325401	政务媒体	上海市市场监督管理局官方账号，媒体矩阵误标商媒
